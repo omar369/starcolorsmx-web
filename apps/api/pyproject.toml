@@ -1,0 +1,17 @@
+[project]
+name = "pintura-api"
+version = "0.1.0"
+description = "API para cotizaciones de servicios de pintura residencial."
+requires-python = ">=3.13"
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = []
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

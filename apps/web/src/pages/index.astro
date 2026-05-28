@@ -1,0 +1,86 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="StarColors | Pintura residencial"
+  description="Cotiza servicios de pintura residencial de forma rápida."
+>
+  <section class="hero">
+    <p class="eyebrow">Servicios de pintura residencial</p>
+
+    <h1>Cotiza la pintura de tu espacio en minutos</h1>
+
+    <p class="hero-text">
+      Obtén una precotización rápida según metros cuadrados, tipo de pintura y
+      tipo de superficie.
+    </p>
+
+    <div class="hero-actions">
+      <a class="button-primary" href="/cotizador">Ir al cotizador</a>
+      <a class="button-secondary" href="/servicios">Ver servicios</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 1rem;
+    padding-block: 3rem;
+  }
+
+  .eyebrow {
+    margin: 0;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+  }
+
+  h1 {
+    margin: 0;
+    max-width: 720px;
+    font-size: clamp(2.3rem, 12vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.07em;
+  }
+
+  .hero-text {
+    margin: 0;
+    max-width: 620px;
+    color: #475569;
+    font-size: 1.1rem;
+    line-height: 1.7;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .button-primary,
+  .button-secondary {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    border-radius: 999px;
+    font-weight: 800;
+  }
+
+  .button-primary {
+    background: #172033;
+    color: white;
+  }
+
+  .button-secondary {
+    background: white;
+    color: #172033;
+    border: 1px solid #e2e8f0;
+  }
+</style>

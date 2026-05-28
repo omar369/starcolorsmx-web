@@ -1,0 +1,11 @@
+---
+import QuoteLayout from "../layouts/QuoteLayout.astro";
+import PartnerQuoteWizard from "../components/quotes/PartnerQuoteWizard.svelte";
+---
+
+<QuoteLayout
+  title="Cotizador | StarColors"
+  description="Cotizador automatico para servicios de pintura residencial."
+>
+  <PartnerQuoteWizard client:load />
+</QuoteLayout>
