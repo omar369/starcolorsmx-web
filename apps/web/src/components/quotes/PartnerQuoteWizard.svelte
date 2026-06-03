@@ -365,7 +365,7 @@
 
     <footer class="wizard-actions">
       {#if currentStep === steps.length - 1}
-        <bturautton
+        <button
           type="button"
           class="button-secondary"
           on:click={startNewQuote}
