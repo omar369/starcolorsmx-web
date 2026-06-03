@@ -125,6 +125,14 @@
     }
   }
 
+  function startNewQuote() {
+    window.location.reload();
+  }
+
+  function goHome() {
+    window.location.href = "/";
+  }
+
   async function submitQuote() {
     submitError = "";
     quoteResult = null;
@@ -183,6 +191,41 @@
 
     errors = nextErrors;
     return isValid;
+  }
+
+  async function downloadQuotePdf() {
+    submitError = "";
+
+    try {
+      const url = apiUrl(`${API_PREFIX}/quotes/pdf`);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(toPayload(form)),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API ${response.status}: ${url}`);
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = "precotizacion-starcolors.pdf";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      submitError =
+        error instanceof Error ? error.message : "No se pudo descargar el PDF.";
+    }
   }
 
   function validateField(field: string) {
@@ -306,7 +349,12 @@
         {:else if currentStep === 7}
           <ReviewSubmitStep {form} {options} {quoteResult} />
         {:else if currentStep === 8 && quoteResult}
-          <QuoteSuccessStep {form} {options} {quoteResult} />
+          <QuoteSuccessStep
+            {form}
+            {options}
+            {quoteResult}
+            onDownloadPdf={downloadQuotePdf}
+          />
         {/if}
       {/if}
     </div>
@@ -316,37 +364,53 @@
     {/if}
 
     <footer class="wizard-actions">
-      <button
-        type="button"
-        class="button-secondary"
-        on:click={goBack}
-        disabled={currentStep === 0 || isSubmitting}
-      >
-        Atras
-      </button>
+      {#if currentStep === steps.length - 1}
+        <bturautton
+          type="button"
+          class="button-secondary"
+          on:click={startNewQuote}
+          disabled={isSubmitting}
+        >
+          Crear nuevo
+        </button>
 
-      {#if currentStep === steps.length - 2}
         <button
           type="button"
           class="button-primary"
-          on:click={submitQuote}
-          disabled={!options || isSubmitting}
+          on:click={goHome}
+          disabled={isSubmitting}
         >
-          {isSubmitting
-            ? "Calculando..."
-            : quoteResult
-              ? "Recalcular"
-              : "Enviar"}
+          Regresar a Inicio
         </button>
       {:else}
         <button
           type="button"
-          class="button-primary"
-          on:click={goNext}
-          disabled={!options || isSubmitting}
+          class="button-secondary"
+          on:click={goBack}
+          disabled={currentStep === 0 || isSubmitting}
         >
-          Continuar
+          Atras
         </button>
+
+        {#if currentStep === steps.length - 2}
+          <button
+            type="button"
+            class="button-primary"
+            on:click={submitQuote}
+            disabled={!options || isSubmitting}
+          >
+            {isSubmitting ? "Calculando..." : "Enviar"}
+          </button>
+        {:else}
+          <button
+            type="button"
+            class="button-primary"
+            on:click={goNext}
+            disabled={!options || isSubmitting}
+          >
+            Continuar
+          </button>
+        {/if}
       {/if}
     </footer>
   </div>

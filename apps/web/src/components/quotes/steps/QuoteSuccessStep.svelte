@@ -81,6 +81,8 @@
 
     return adjustment.option_name;
   }
+
+  export let onDownloadPdf: () => void;
 </script>
 
 <section class="step">
@@ -159,12 +161,10 @@
     <p>Próximamente podrás descargar aquí:</p>
 
     <div class="file-actions">
-      <button type="button" disabled>Cotización PDF</button>
-      <button type="button" disabled>Aviso de privacidad PDF</button>
+      <button type="button" on:click={onDownloadPdf}>Cotización en PDF</button>
+      <button type="button" disabled>Aviso de privacidad en PDF</button>
     </div>
   </div>
-
-  <a class="home-link" href="/">Regresar al inicio</a>
 </section>
 
 <style>
@@ -392,19 +392,6 @@
 
   .file-actions button:disabled {
     opacity: 0.72;
-  }
-
-  .home-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 36px;
-    border-radius: 999px;
-    background: #172033;
-    color: #fff;
-    font-size: 0.76rem;
-    font-weight: 900;
-    text-decoration: none;
   }
 
   @media (max-width: 520px) {
