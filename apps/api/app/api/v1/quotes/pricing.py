@@ -71,7 +71,7 @@ def build_adjustments(
                 option_id=option.id,
                 option_name=option.name,
                 percentage=round(option.percentage, 4),
-                amount=round(amount, 2)
+                amount=round(amount, 2),
             )
         )
 

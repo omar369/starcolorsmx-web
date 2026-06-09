@@ -165,7 +165,9 @@ def build_header(styles: dict[str, ParagraphStyle]) -> list:
     return [header]
 
 
-def build_service_table(payload: QuoteCreate, styles: dict[str, ParagraphStyle]) -> Table:
+def build_service_table(
+    payload: QuoteCreate, styles: dict[str, ParagraphStyle]
+) -> Table:
     today = date.today().strftime("%d/%m/%Y")
 
     data = [
@@ -307,12 +309,14 @@ def draw_page_footer(canvas, document) -> None:
         height=footer_height,
     )
 
+
 def draw_disclaimer(canvas, x: float, y: float, width: float, height: float) -> None:
     text = (
         "Nota: La presente es una precotizacion estimada, elaborada con base en la "
         "informacion proporcionada por el cliente. Los precios, cantidades y alcances "
-        "pueden variar despues de realizar una visita ocular o revision tecnica en sitio. "
-        "La cotizacion final se ajustara conforme a las condiciones reales del trabajo, "
+        "pueden variar despues de realizar una visita ocular o revision tecnica en "
+        "sitio. La cotizacion final se ajustara conforme a las condiciones reales "
+        "del trabajo, "
         "materiales requeridos y maniobras necesarias. Vigencia: 10 dias naturales."
     )
 
@@ -330,7 +334,7 @@ def draw_disclaimer(canvas, x: float, y: float, width: float, height: float) -> 
     lines = wrap_text(text, max_chars=max_chars)
 
     for line in lines[:4]:
-      text_object.textLine(line)
+        text_object.textLine(line)
 
     canvas.drawText(text_object)
     canvas.restoreState()
@@ -370,6 +374,7 @@ def draw_footer_bar(
         "www.starcolorsmx.com",
     )
     canvas.restoreState()
+
 
 def wrap_text(text: str, max_chars: int) -> list[str]:
     words = text.split()
@@ -430,12 +435,14 @@ def build_service_description(payload: QuoteCreate, quote: QuoteResult) -> str:
         f"Actividades del lugar: {payload.place_activities or 'No especificado'}."
     )
 
+
 def get_unit_price(quote: QuoteResult) -> float:
     if quote.adjusted_price_per_m2 > 0:
         return quote.adjusted_price_per_m2
     if quote.square_meters <= 0:
         return 0
     return quote.estimated_price / quote.square_meters
+
 
 def format_money(value: float) -> str:
     return f"${value:,.2f}"

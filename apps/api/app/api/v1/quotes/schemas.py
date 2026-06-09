@@ -178,6 +178,7 @@ class QuoteResult(BaseModel):
     adjustments: list[QuoteAdjustment]
     estimated_price: float
 
+
 def validate_catalog_option(catalog_name: str, value: str) -> str:
     if not has_option(catalog_name, value):
         raise ValueError(f"invalid {catalog_name}")

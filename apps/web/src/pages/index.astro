@@ -3,22 +3,34 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
-  title="StarColors | Pintura residencial"
-  description="Cotiza servicios de pintura residencial de forma rápida."
+  title="StarColors | Sorteo de temporada"
+  description="Participa en el sorteo de StarColors registrando tus boletos en el portal de clientes."
 >
   <section class="hero">
-    <p class="eyebrow">Servicios de pintura residencial</p>
+    <p class="eyebrow">Sorteo de temporada</p>
 
-    <h1>Cotiza la pintura de tu espacio en minutos</h1>
+    <h1>Llévate una pantalla de 49&quot;</h1>
 
-    <p class="hero-text">
-      Obtén una precotización rápida según metros cuadrados, tipo de pintura y
-      tipo de superficie.
+    <p class="hero-offer">
+      Comprando un monto superior a los <strong>$250</strong>.
     </p>
 
-    <div class="hero-actions">
-      <a class="button-primary" href="/cotizador">Ir al cotizador</a>
-      <a class="button-secondary" href="/servicios">Ver servicios</a>
+    <div class="raffle-details">
+      <p>
+        Por cada 250 pesos de compra llévate un boleto para participar. Para
+        registrar el boleto entra al portal de clientes y elige tu número de la
+        suerte.
+      </p>
+
+      <p>
+        Nosotros solo te pediremos tu nombre y correo electrónico para avisarte
+        cuando puedas pasar por tu premio.
+      </p>
+    </div>
+
+    <div class="hero-actions" aria-label="Acceso al sorteo">
+      <p class="luck-note">MUCHA SUERTE</p>
+      <a class="button-primary" href="/hub">¡Entra al sorteo!</a>
     </div>
   </section>
 </BaseLayout>
@@ -33,7 +45,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   .eyebrow {
     margin: 0;
     color: #64748b;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.75rem;
@@ -41,46 +53,89 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   h1 {
     margin: 0;
-    max-width: 720px;
-    font-size: clamp(2.3rem, 12vw, 5rem);
+    max-width: 780px;
+    font-size: clamp(2.35rem, 11vw, 5rem);
     line-height: 0.95;
-    letter-spacing: -0.07em;
   }
 
-  .hero-text {
+  .hero-offer {
     margin: 0;
     max-width: 620px;
+    color: #172033;
+    font-size: clamp(1.15rem, 5vw, 1.8rem);
+    font-weight: 760;
+    line-height: 1.2;
+  }
+
+  .hero-offer strong {
+    font-weight: 900;
+  }
+
+  .raffle-details {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 680px;
     color: #475569;
-    font-size: 1.1rem;
+    font-size: 1rem;
     line-height: 1.7;
   }
 
-  .hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 1rem;
+  .raffle-details p {
+    margin: 0;
   }
 
-  .button-primary,
-  .button-secondary {
-    display: inline-flex;
-    justify-content: center;
+  .hero-actions {
+    display: grid;
+    gap: 0.65rem;
     align-items: center;
-    min-height: 44px;
-    padding: 0.75rem 1rem;
-    border-radius: 999px;
-    font-weight: 800;
+    justify-items: start;
+    margin-top: 0.5rem;
+  }
+
+  .luck-note {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+  }
+
+  .luck-note::after {
+    content: " ↓";
   }
 
   .button-primary {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 46px;
+    padding: 0.78rem 1.15rem;
+    border-radius: 999px;
     background: #172033;
     color: white;
+    font-weight: 850;
   }
 
-  .button-secondary {
-    background: white;
-    color: #172033;
-    border: 1px solid #e2e8f0;
+  @media (min-width: 680px) {
+    .hero {
+      padding-block: 4rem;
+    }
+
+    .hero-actions {
+      grid-template-columns: auto auto;
+      gap: 1rem;
+    }
+
+    .luck-note {
+      order: 1;
+    }
+
+    .luck-note::after {
+      content: " -->";
+    }
+
+    .button-primary {
+      order: 2;
+    }
   }
 </style>

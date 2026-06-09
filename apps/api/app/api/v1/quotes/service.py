@@ -24,9 +24,7 @@ def calculate_quote(payload: QuoteCreate) -> QuoteResult:
 
     adjustments = build_adjustments(payload, subtotal)
 
-    total_adjustment_percentage = calculate_total_adjustment_percentage(
-        adjustments
-    )
+    total_adjustment_percentage = calculate_total_adjustment_percentage(adjustments)
 
     adjusted_price_per_m2 = calculate_adjusted_price_per_m2(
         base_price_per_m2=base_price_per_m2,

@@ -1,0 +1,16 @@
+---
+import UserHub from "../components/user/UserHub.svelte";
+---
+
+<main class="page">
+  <UserHub client:load />
+</main>
+
+<style>
+  .page {
+    min-height: 100dvh;
+    background:
+      radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 32rem),
+      #080808;
+  }
+</style>
