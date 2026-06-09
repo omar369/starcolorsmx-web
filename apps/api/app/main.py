@@ -28,3 +28,7 @@ def root():
         "environment": settings.app_env,
         "version": settings.api_version,
     }
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
