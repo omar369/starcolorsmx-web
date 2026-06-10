@@ -55,13 +55,13 @@
         </Label>
         
         <p class="text-xs text-[#e67a25] font-bold bg-[#e67a25]/5 p-3 rounded-lg border border-[#e67a25]/10 leading-relaxed">
-          Puedes ingresar hasta 10 códigos. Solo hay que separarlos con una coma.
+          Agrega tu código y separa con coma si tienes mas de 1 código
         </p>
 
         <textarea
           id="codesInput"
           bind:value={codesText}
-          placeholder={"A7K2P9\nM4X8Q1\nZ9T3L6"}
+          placeholder=""
           rows={6}
           class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50/50 text-[#111] font-mono text-sm focus:outline-none focus:border-[#e67a25] focus:ring-4 focus:ring-[#e67a25]/10 resize-y transition-all placeholder:text-gray-300"
         ></textarea>

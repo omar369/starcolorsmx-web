@@ -35,41 +35,71 @@ def seed_raffle(db: Session) -> None:
         db.add(raffle)
         db.flush()
 
-        branches = [
-            RaffleBranch(
-                raffle_id=raffle.id,
-                name="Sucursal Centro",
-                slug="centro",
-                image_url=None,
-                number_start=1,
-                number_end=165,
-                sort_order=1,
-            ),
-            RaffleBranch(
-                raffle_id=raffle.id,
-                name="Sucursal Norte",
-                slug="norte",
-                image_url=None,
-                number_start=166,
-                number_end=330,
-                sort_order=2,
-            ),
-            RaffleBranch(
-                raffle_id=raffle.id,
-                name="Sucursal Sur",
-                slug="sur",
-                image_url=None,
-                number_start=331,
-                number_end=495,
-                sort_order=3,
-            ),
-        ]
+    # Asegurar sucursales actualizadas
+    expected_branches = [
+        {
+            "slug": "burocrata",
+            "name": "Burocrata",
+            "image_url": "/images/contacto/burocrata.jpg",
+            "number_start": 1,
+            "number_end": 165,
+            "sort_order": 1,
+        },
+        {
+            "slug": "pueblito",
+            "name": "El Pueblito",
+            "image_url": "/images/contacto/pueblito.jpg",
+            "number_start": 166,
+            "number_end": 330,
+            "sort_order": 2,
+        },
+        {
+            "slug": "constituyentes",
+            "name": "Constituyentes",
+            "image_url": "/images/contacto/constituyentes.jpg",
+            "number_start": 331,
+            "number_end": 495,
+            "sort_order": 3,
+        },
+    ]
 
-        db.add_all(branches)
+    for data in expected_branches:
+        branch = db.execute(
+            select(RaffleBranch).where(
+                RaffleBranch.raffle_id == raffle.id,
+                RaffleBranch.sort_order == data["sort_order"]
+            )
+        ).scalar_one_or_none()
+
+        if branch:
+            branch.name = data["name"]
+            branch.slug = data["slug"]
+            branch.image_url = data["image_url"]
+            branch.number_start = data["number_start"]
+            branch.number_end = data["number_end"]
+        else:
+            branch = RaffleBranch(
+                raffle_id=raffle.id,
+                name=data["name"],
+                slug=data["slug"],
+                image_url=data["image_url"],
+                number_start=data["number_start"],
+                number_end=data["number_end"],
+                sort_order=data["sort_order"],
+            )
+            db.add(branch)
         db.flush()
 
-        for branch in branches:
-            for number in range(branch.number_start, branch.number_end + 1):
+        # Asegurar números
+        for number in range(branch.number_start, branch.number_end + 1):
+            existing_number = db.execute(
+                select(RaffleNumber).where(
+                    RaffleNumber.raffle_id == raffle.id,
+                    RaffleNumber.number == number
+                )
+            ).scalar_one_or_none()
+
+            if not existing_number:
                 db.add(
                     RaffleNumber(
                         raffle_id=raffle.id,
@@ -79,43 +109,5 @@ def seed_raffle(db: Session) -> None:
                     )
                 )
 
-    existing_codes_count = (
-        db.execute(
-            select(RaffleTicketCode).where(RaffleTicketCode.raffle_id == raffle.id)
-        )
-        .scalars()
-        .all()
-    )
-
-    if not existing_codes_count:
-        demo_codes = [
-            "A7K2P9",
-            "M4X8Q1",
-            "Z9T3L6",
-            "C2V7N5",
-            "R8B1Y4",
-            "H6D9W2",
-            "P3Q5J8",
-            "L1S7K0",
-            "V9E2C6",
-            "N4G8A3",
-            "T6M1X9",
-            "B8R5Z2",
-            "K2Y7D4",
-            "Q5L9P1",
-            "W3C6H8",
-        ]
-
-        for code in demo_codes:
-            normalized_code = normalize_code(code)
-
-            db.add(
-                RaffleTicketCode(
-                    raffle_id=raffle.id,
-                    code_hash=hash_code(normalized_code),
-                    code_last4=normalized_code[-4:],
-                    status="available",
-                )
-            )
-
     db.commit()
+

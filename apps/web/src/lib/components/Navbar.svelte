@@ -2,6 +2,8 @@
   import * as NavigationMenu from "$lib/components/ui/navigation-menu/index.js";
   import Button from "$lib/components/ui/button/button.svelte";
   import { Menu, X, User } from "@lucide/svelte";
+  import { onMount } from "svelte";
+  import { getStoredUser } from "$lib/auth";
 
   const links = [
     { href: "/", label: "Inicio" },
@@ -13,8 +15,27 @@
 
   let menuOpen = $state(false);
 
-  // Placeholder — swap with real auth state once session logic is wired
-  let user = $state<{ name: string; avatarUrl?: string } | null>(null);
+  // Read stored user from session on mount
+  let user = $state<{ name: string; email?: string; avatarUrl?: string } | null>(null);
+
+  onMount(() => {
+    const storedUser = getStoredUser();
+    if (storedUser) {
+      user = {
+        name: storedUser.full_name,
+        email: storedUser.email,
+      };
+    }
+  });
+
+  function getInitials(name: string) {
+    if (!name) return "";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  }
 </script>
 
 <header
@@ -85,9 +106,9 @@
     <!-- Desktop CTA: Portal clientes button + avatar slot -->
     <div class="relative z-10 hidden items-center gap-2 md:flex">
       {#if user}
-        <!-- Logged-in state: avatar button -->
+        <!-- Logged-in state: avatar button with initials -->
         <button
-          class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-white/80 bg-white shadow-sm transition hover:scale-105"
+          class="flex h-10 w-10 mt-4 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#f3eadb] shadow-md transition-all duration-300 hover:scale-105 hover:border-[#e67a25] hover:shadow-lg focus:outline-none"
           aria-label="Mi perfil"
           onclick={() => (window.location.href = "/hub")}
         >
@@ -100,9 +121,9 @@
           {:else}
             <!-- Initials fallback -->
             <span
-              class="text-xs font-black text-[#e67a25] uppercase leading-none"
+              class="text-xs font-black text-[#e67a25] uppercase tracking-wider leading-none"
             >
-              {user.name.slice(0, 2)}
+              {getInitials(user.name)}
             </span>
           {/if}
         </button>
@@ -149,14 +170,35 @@
         </a>
       {/each}
 
-      <a
-        href="/hub"
-        class="mt-2 flex items-center justify-center gap-2 rounded-xl bg-[#e67a25] px-3 py-3 text-center text-base font-black uppercase text-white no-underline hover:no-underline"
-        onclick={() => (menuOpen = false)}
-      >
-        <User class="h-4 w-4" />
-        Portal clientes
-      </a>
+      {#if user}
+        <div class="mt-2 flex flex-col gap-2 border-t border-[#e1cdb8]/60 pt-3">
+          <div class="flex items-center gap-3 px-3 py-1.5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e67a25] text-white font-black text-xs uppercase shadow-sm">
+              {getInitials(user.name)}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-black text-[#172033] truncate leading-none mb-1">{user.name}</p>
+              <p class="text-[0.75rem] text-gray-500 font-bold truncate leading-none">{user.email ?? ''}</p>
+            </div>
+          </div>
+          <a
+            href="/hub"
+            class="flex items-center justify-center gap-2 rounded-xl bg-[#e67a25] px-3 py-3 text-center text-base font-black uppercase text-white no-underline hover:no-underline hover:bg-[#d96f20] transition-colors"
+            onclick={() => (menuOpen = false)}
+          >
+            Portal cliente
+          </a>
+        </div>
+      {:else}
+        <a
+          href="/hub"
+          class="mt-2 flex items-center justify-center gap-2 rounded-xl bg-[#e67a25] px-3 py-3 text-center text-base font-black uppercase text-white no-underline hover:no-underline hover:bg-[#d96f20] transition-colors"
+          onclick={() => (menuOpen = false)}
+        >
+          <User class="h-4 w-4" />
+          Portal clientes
+        </a>
+      {/if}
     </nav>
   {/if}
 </header>

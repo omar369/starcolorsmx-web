@@ -1,53 +1,43 @@
 import sys
 import os
-from sqlalchemy import select, delete, update
+from sqlalchemy import delete, update
 from sqlalchemy.engine import CursorResult
 from app.db.session import SessionLocal
 from app.api.v1.raffle.models import (
-    Raffle,
     RaffleEntry,
     RaffleTicketBatch,
     RaffleTicketBatchItem,
     RaffleTicketCode,
     RaffleNumber
 )
+from app.api.v1.auth.models import User
 
-def reset_raffle() -> None:
+def reset_users() -> None:
     db = SessionLocal()
     try:
-        # 1. Obtener sorteo activo
-        stmt = select(Raffle).where(Raffle.status == "active")
-        raffle = db.execute(stmt).scalar_one_or_none()
-        if not raffle:
-            print("Error: No se encontró un sorteo activo.")
-            return
-
-        print(f"Sorteo activo encontrado: '{raffle.title}' (ID: {raffle.id})")
-
-        # 2. Borrar participaciones (RaffleEntries)
-        entries_stmt = delete(RaffleEntry).where(RaffleEntry.raffle_id == raffle.id)
+        # 1. Borrar participaciones (RaffleEntries) de todos los usuarios
+        entries_stmt = delete(RaffleEntry)
         entries_result: CursorResult = db.execute(entries_stmt)
         print(f"Eliminadas {entries_result.rowcount} participaciones (RaffleEntries).")
 
-        # 3. Borrar items de lotes (RaffleTicketBatchItems)
+        # 2. Borrar items de lotes (RaffleTicketBatchItems)
         batch_items_stmt = delete(RaffleTicketBatchItem)
         batch_items_result: CursorResult = db.execute(batch_items_stmt)
         print(f"Eliminados {batch_items_result.rowcount} registros de validación individuales (RaffleTicketBatchItems).")
 
-        # 4. Borrar lotes de tickets (RaffleTicketBatches)
-        batches_stmt = delete(RaffleTicketBatch).where(RaffleTicketBatch.raffle_id == raffle.id)
+        # 3. Borrar lotes de tickets (RaffleTicketBatches)
+        batches_stmt = delete(RaffleTicketBatch)
         batches_result: CursorResult = db.execute(batches_stmt)
         print(f"Eliminados {batches_result.rowcount} lotes de validación (RaffleTicketBatches).")
 
-        # 5. Borrar todos los códigos de boletos (RaffleTicketCode)
-        codes_stmt = delete(RaffleTicketCode).where(RaffleTicketCode.raffle_id == raffle.id)
+        # 4. Borrar todos los códigos de boletos (RaffleTicketCode)
+        codes_stmt = delete(RaffleTicketCode)
         codes_result: CursorResult = db.execute(codes_stmt)
         print(f"Eliminados {codes_result.rowcount} códigos de boletos (RaffleTicketCode).")
 
-        # 6. Resetear números del tablero (RaffleNumber)
+        # 5. Resetear todos los números del tablero (RaffleNumber)
         numbers_stmt = (
             update(RaffleNumber)
-            .where(RaffleNumber.raffle_id == raffle.id)
             .values(
                 status="available",
                 taken_by_user_id=None,
@@ -57,29 +47,34 @@ def reset_raffle() -> None:
         numbers_result: CursorResult = db.execute(numbers_stmt)
         print(f"Restaurados {numbers_result.rowcount} números del tablero a 'available'.")
 
+        # 6. Borrar todos los usuarios de la base de datos
+        users_stmt = delete(User)
+        users_result: CursorResult = db.execute(users_stmt)
+        print(f"Eliminados {users_result.rowcount} usuarios (Users).")
+
         db.commit()
-        print("Reseteo completado con éxito. Todos los códigos y números vuelven a estar libres.")
+        print("Reseteo de usuarios completado con éxito. No queda ningún usuario y todos los datos asociados fueron limpiados.")
 
     except Exception as e:
         db.rollback()
-        print(f"Error durante el reseteo: {e}")
+        print(f"Error durante el reseteo de usuarios: {e}")
     finally:
         db.close()
 
 if __name__ == "__main__":
     app_env = os.getenv("APP_ENV", "development").lower()
     
-    print("¡ATENCIÓN! Este script borrará todas las participaciones de los usuarios y liberará todos los números.")
+    print("¡ATENCIÓN! Este script BORRARÁ TODOS LOS USUARIOS de la base de datos y limpiará sus participaciones.")
     if app_env == "production":
         print("¡¡ALERTA MÁXIMA!! Detectado entorno de PRODUCCIÓN.")
-        confirm = input("Para continuar y BORRAR DATOS REALES de clientes, escribe exactamente 'BORRAR DATOS REALES': ")
-        if confirm != "BORRAR DATOS REALES":
+        confirm = input("Para continuar y ELIMINAR TODOS LOS USUARIOS REALES, escribe exactamente 'ELIMINAR TODOS LOS USUARIOS': ")
+        if confirm != "ELIMINAR TODOS LOS USUARIOS":
             print("Operación cancelada por seguridad.")
             sys.exit(0)
     else:
-        confirm = input("¿Estás seguro de que deseas resetear el sorteo de desarrollo? (escribe 'si' para continuar): ")
+        confirm = input("¿Estás seguro de que deseas eliminar todos los usuarios de desarrollo? (escribe 'si' para continuar): ")
         if confirm.lower() != "si":
             print("Operación cancelada.")
             sys.exit(0)
 
-    reset_raffle()
+    reset_users()

@@ -13,7 +13,7 @@
         <!-- Balón Principal -->
         <div class="image image-one">
           <img
-            src="/images/balon.png"
+            src="/images/balon.webp"
             alt="Balón de fútbol StarColors"
             class="prize-img"
           />
@@ -22,7 +22,7 @@
         <!-- Balón Secundario (Duplicado) -->
         <div class="image image-three">
           <img
-            src="/images/balon.png"
+            src="/images/balon.webp"
             alt="Balón secundario"
             class="prize-img"
           />
@@ -31,7 +31,7 @@
         <!-- Balón Terciario (Nuevo) -->
         <div class="image image-four">
           <img
-            src="/images/balon.png"
+            src="/images/balon.webp"
             alt="Balón terciario"
             class="prize-img"
           />
@@ -40,7 +40,7 @@
         <!-- Pantalla de Sorteo centrado (Grande y puede desbordar) -->
         <div class="image image-two">
           <img
-            src="/images/pantallaSorteo.png"
+            src="/images/pantalla.webp"
             alt="Pantalla de 49 pulgadas"
             class="prize-img"
           />
@@ -158,7 +158,7 @@
     position: absolute;
     inset: 0;
     border-radius: 2.5rem;
-    background: url("/images/patternVerde.png") no-repeat center center / cover;
+    background: url("/images/bannerBG.webp") no-repeat center center / cover;
 
     opacity: 0;
     animation: fade-in-pattern 1.2s ease-in-out 0.2s forwards;
