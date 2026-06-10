@@ -5,10 +5,10 @@
 
   const links = [
     { href: "/", label: "Inicio" },
-    { href: "#", label: "Servicios" },
-    { href: "#", label: "Productos" },
-    { href: "#", label: "Sobre nosotros" },
-    { href: "#", label: "Contacto" },
+    { href: "/servicios", label: "Servicios" },
+    { href: "/productos", label: "Productos" },
+    { href: "/sobre-nosotros", label: "Sobre nosotros" },
+    { href: "/contacto", label: "Contacto" },
   ];
 
   let menuOpen = $state(false);

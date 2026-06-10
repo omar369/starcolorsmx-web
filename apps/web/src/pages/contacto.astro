@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ContactPage from "./contacto/+page.svelte";
+---
+
+<BaseLayout
+  title="Contacto | Pinturas StarColors"
+  description="Encuentra nuestras sucursales y datos de contacto de StarColors."
+>
+  <ContactPage client:load />
+</BaseLayout>
+
+<style is:global>
+  body {
+    background-color: #F3EADB !important;
+  }
+</style>

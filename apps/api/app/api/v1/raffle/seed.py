@@ -17,15 +17,15 @@ def seed_raffle(db: Session) -> None:
 
     if existing_raffle:
         raffle = existing_raffle
-        if raffle.prize_title != 'Gana una smart TV de 50"':
-            raffle.prize_title = 'Gana una smart TV de 50"'
+        if raffle.prize_title != 'Gana SMART TV':
+            raffle.prize_title = 'Gana SMART TV'
         if raffle.max_batches_per_user_24h != 10:
             raffle.max_batches_per_user_24h = 10
     else:
         raffle = Raffle(
             title="Sorteo de temporada",
             slug="sorteo-temporada-2026",
-            prize_title='Gana una smart TV de 50"',
+            prize_title='Gana SMART TV',
             status="active",
             total_numbers=495,
             numbers_per_branch=165,

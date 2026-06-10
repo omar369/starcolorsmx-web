@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ProductsPage from "./productos/+page.svelte";
+---
+
+<BaseLayout
+  title="Catálogo de Productos | Pinturas StarColors"
+  description="Explora nuestra gama de pinturas de alta calidad y rendimiento."
+>
+  <ProductsPage client:load />
+</BaseLayout>
+
+<style is:global>
+  body {
+    background-color: #F3EADB !important;
+  }
+</style>

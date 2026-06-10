@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainBanner from "$lib/components/MainBanner.svelte";
+import LandingCarousel from "$lib/components/LandingCarousel.svelte";
 ---
 
 <BaseLayout
@@ -8,6 +9,7 @@ import MainBanner from "$lib/components/MainBanner.svelte";
   description="Participa en el sorteo de StarColors registrando tus boletos en el portal de clientes."
 >
   <MainBanner client:load />
+  <LandingCarousel client:load />
 </BaseLayout>
 
 <style is:global>

@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ServicesPage from "./servicios/+page.svelte";
+---
+
+<BaseLayout
+  title="Nuestros Servicios | Pinturas StarColors"
+  description="Servicios profesionales de pintura e impermeabilización residencial y comercial."
+>
+  <ServicesPage client:load />
+</BaseLayout>
+
+<style is:global>
+  body {
+    background-color: #F3EADB !important;
+  }
+</style>

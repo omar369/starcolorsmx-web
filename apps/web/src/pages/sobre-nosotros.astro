@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import AboutPage from "./sobre-nosotros/+page.svelte";
+---
+
+<BaseLayout
+  title="Sobre Nosotros | Pinturas StarColors"
+  description="Conoce nuestra historia y compromiso con la calidad desde 1994."
+>
+  <AboutPage client:load />
+</BaseLayout>
+
+<style is:global>
+  body {
+    background-color: #F3EADB !important;
+  }
+</style>
