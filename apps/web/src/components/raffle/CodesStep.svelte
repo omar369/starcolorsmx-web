@@ -53,6 +53,11 @@
         <Label for="codesInput" class="text-sm font-bold text-[#111111]">
           Códigos de boleto físico
         </Label>
+        
+        <p class="text-xs text-[#e67a25] font-bold bg-[#e67a25]/5 p-3 rounded-lg border border-[#e67a25]/10 leading-relaxed">
+          Puedes ingresar hasta 10 códigos. Solo hay que separarlos con una coma.
+        </p>
+
         <textarea
           id="codesInput"
           bind:value={codesText}

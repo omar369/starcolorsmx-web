@@ -33,7 +33,7 @@ class Raffle(Base):
         Integer, default=10, nullable=False
     )
     max_batches_per_user_24h: Mapped[int] = mapped_column(
-        Integer, default=3, nullable=False
+        Integer, default=10, nullable=False
     )
 
     starts_at: Mapped[datetime | None] = mapped_column(

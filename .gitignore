@@ -27,3 +27,8 @@ apps/web/.env.*
 # OS
 .DS_Store
 Thumbs.db
+
+# CSV & Agent files
+*.csv
+.antigravity*
+antigravity*
