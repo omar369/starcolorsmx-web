@@ -1,159 +1,105 @@
 <script lang="ts">
   import type { RaffleBranch, TicketBatchValidation } from "../../lib/raffle";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { ChevronLeft, CheckCircle2, AlertTriangle } from "@lucide/svelte";
 
-  export let selectedBranch: RaffleBranch;
-  export let validation: TicketBatchValidation;
-  export let onBack: () => void;
-  export let onContinue: () => void;
+  // Svelte 5 props
+  let {
+    selectedBranch,
+    validation,
+    onBack,
+    onContinue,
+  }: {
+    selectedBranch: RaffleBranch;
+    validation: TicketBatchValidation;
+    onBack: () => void;
+    onContinue: () => void;
+  } = $props();
 </script>
 
-<article class="card">
-  <button class="back-button" type="button" on:click={onBack}>
-    Editar códigos
+<div class="w-full max-w-xl mx-auto space-y-4">
+  <button
+    type="button"
+    onclick={onBack}
+    class="inline-flex items-center gap-1.5 text-sm font-bold text-[#e67a25] hover:text-[#d96f20] transition-colors focus:outline-none"
+  >
+    <ChevronLeft class="h-4 w-4" />
+    Volver a códigos
   </button>
 
-  <p class="eyebrow">Paso 3</p>
-  <h2>Resultado de tus boletos</h2>
+  <Card.Root class="border-0 shadow-lg rounded-2xl overflow-hidden bg-white/95 backdrop-blur-sm">
+    <div class="h-1.5 w-full bg-gradient-to-r from-[#e67a25] to-[#f59e0b]"></div>
 
-  <p class="muted">
-    Revisamos tus códigos para la sucursal {selectedBranch.name}.
-  </p>
+    <Card.Header class="pb-4">
+      <Card.Description class="font-black text-[#e67a25] tracking-widest uppercase text-[0.7rem] mb-1">
+        Paso 3 de 6
+      </Card.Description>
+      <Card.Title class="text-2xl font-black text-[#111111] leading-tight">
+        Resultado de validación
+      </Card.Title>
+      <p class="text-sm text-gray-500 font-medium">
+        Revisando boletos de: <span class="font-black text-[#e67a25]">{selectedBranch.name}</span>
+      </p>
+    </Card.Header>
 
-  <section class="summary-grid">
-    <div>
-      <strong>{validation.accepted_count}</strong>
-      <span>Aceptados</span>
-    </div>
+    <Card.Content class="space-y-6">
+      <!-- Resumen aceptados / rechazados -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-center">
+          <p class="text-3xl font-black text-green-700">{validation.accepted_count}</p>
+          <p class="text-[0.7rem] font-black uppercase tracking-widest text-green-600 mt-1">Aceptados</p>
+        </div>
+        <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-center">
+          <p class="text-3xl font-black text-red-700">{validation.rejected_count}</p>
+          <p class="text-[0.7rem] font-black uppercase tracking-widest text-red-600 mt-1">Rechazados</p>
+        </div>
+      </div>
 
-    <div>
-      <strong>{validation.rejected_count}</strong>
-      <span>Rechazados</span>
-    </div>
-  </section>
+      <!-- Lista de validaciones -->
+      <div class="space-y-2.5">
+        <p class="text-xs font-black text-[#111111] uppercase tracking-wider">Detalle de boletos:</p>
+        <ul class="space-y-2">
+          {#each validation.results as result}
+            {@const accepted = result.status === 'accepted'}
+            <li class="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border text-sm font-bold 
+              {accepted 
+                ? 'bg-green-500/5 text-green-800 border-green-200' 
+                : 'bg-red-500/5 text-red-800 border-red-200'}">
+              <div class="flex items-center gap-2.5">
+                {#if accepted}
+                  <CheckCircle2 class="h-4.5 w-4.5 text-green-600 shrink-0" />
+                {:else}
+                  <AlertTriangle class="h-4.5 w-4.5 text-red-600 shrink-0" />
+                {/if}
+                <span class="font-mono tracking-widest">•••• {result.code_last4}</span>
+              </div>
+              <span class="text-xs uppercase tracking-wider font-black">
+                {accepted ? "✓ Aceptado" : (result.reason === "not_found" ? "No existe" : "Ya usado")}
+              </span>
+            </li>
+          {/each}
+        </ul>
+      </div>
 
-  <ul class="validation-list">
-    {#each validation.results as result}
-      <li class:accepted={result.status === "accepted"}>
-        <span>•••• {result.code_last4}</span>
-        <strong
-          >{result.status === "accepted" ? "Aceptado" : result.reason}</strong
+      {#if validation.accepted_count > 0}
+        <Button
+          type="button"
+          onclick={onContinue}
+          class="w-full h-12 rounded-xl bg-[#e67a25] hover:bg-[#d96f20] text-white font-black uppercase tracking-wider shadow-md hover:shadow-lg transition-all"
         >
-      </li>
-    {/each}
-  </ul>
-
-  {#if validation.accepted_count > 0}
-    <button class="primary-button" type="button" on:click={onContinue}>
-      Elegir {validation.accepted_count}
-      {validation.accepted_count === 1 ? " número" : " números"}
-    </button>
-  {:else}
-    <button class="primary-button" type="button" on:click={onBack}>
-      Intentar con otros códigos
-    </button>
-  {/if}
-</article>
-
-<style>
-  .card {
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.05);
-    color: inherit;
-  }
-
-  .back-button {
-    width: fit-content;
-    margin-bottom: 1rem;
-    border: 0;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.72);
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  .eyebrow {
-    margin: 0 0 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 850;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    opacity: 0.65;
-  }
-
-  h2,
-  p {
-    margin: 0;
-  }
-
-  h2 {
-    margin-bottom: 0.75rem;
-  }
-
-  .muted {
-    color: rgba(255, 255, 255, 0.68);
-  }
-
-  .summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    margin-top: 1.25rem;
-  }
-
-  .summary-grid div {
-    display: grid;
-    gap: 0.25rem;
-    padding: 1rem;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  .summary-grid strong {
-    font-size: 2rem;
-    line-height: 1;
-  }
-
-  .summary-grid span {
-    color: rgba(255, 255, 255, 0.65);
-    font-size: 0.85rem;
-    font-weight: 800;
-  }
-
-  .validation-list {
-    display: grid;
-    gap: 0.6rem;
-    margin: 1.25rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .validation-list li {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.85rem;
-    border-radius: 14px;
-    background: rgba(255, 115, 115, 0.12);
-    color: #ffb0b0;
-  }
-
-  .validation-list li.accepted {
-    background: rgba(159, 255, 194, 0.12);
-    color: #9fffc2;
-  }
-
-  .primary-button {
-    min-height: 44px;
-    margin-top: 1rem;
-    padding: 0 1.1rem;
-    border: 0;
-    border-radius: 999px;
-    background: #ffffff;
-    color: #000000;
-    font-weight: 850;
-    cursor: pointer;
-  }
-</style>
+          Elegir {validation.accepted_count} {validation.accepted_count === 1 ? "número" : "números"} →
+        </Button>
+      {:else}
+        <Button
+          type="button"
+          variant="outline"
+          onclick={onBack}
+          class="w-full h-12 rounded-xl border-2 border-red-500/40 hover:border-red-600 text-red-700 font-black uppercase tracking-wider hover:bg-red-50 transition-all"
+        >
+          Intentar con otros códigos
+        </Button>
+      {/if}
+    </Card.Content>
+  </Card.Root>
+</div>

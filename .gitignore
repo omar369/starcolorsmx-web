@@ -22,6 +22,7 @@ apps/api/.env
 apps/api/.env.*
 apps/web/.env
 apps/web/.env.*
+./app_overview.m./d
 
 # OS
 .DS_Store

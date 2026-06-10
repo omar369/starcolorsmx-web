@@ -1,135 +1,93 @@
 <script lang="ts">
   import type { RaffleNumber, TicketValidationResult } from "../../lib/raffle";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { ChevronLeft, CheckCircle2 } from "@lucide/svelte";
 
-  export let acceptedTickets: TicketValidationResult[] = [];
-  export let numbers: RaffleNumber[] = [];
-  export let selectedNumberIds: number[] = [];
-  export let loading = false;
-  export let error = "";
-  export let onBack: () => void;
-  export let onConfirm: () => void;
+  // Svelte 5 props
+  let {
+    acceptedTickets = [],
+    numbers = [],
+    selectedNumberIds = [],
+    loading = false,
+    error = "",
+    onBack,
+    onConfirm,
+  }: {
+    acceptedTickets: TicketValidationResult[];
+    numbers: RaffleNumber[];
+    selectedNumberIds: number[];
+    loading: boolean;
+    error: string;
+    onBack: () => void;
+    onConfirm: () => void;
+  } = $props();
 
   function findNumber(numberId: number) {
     return numbers.find((item) => item.id === numberId);
   }
 </script>
 
-<article class="card">
-  <button class="back-button" type="button" on:click={onBack}>
+<div class="w-full max-w-xl mx-auto space-y-4">
+  <button
+    type="button"
+    onclick={onBack}
+    class="inline-flex items-center gap-1.5 text-sm font-bold text-[#e67a25] hover:text-[#d96f20] transition-colors focus:outline-none"
+  >
+    <ChevronLeft class="h-4 w-4" />
     Cambiar números
   </button>
 
-  <p class="eyebrow">Paso 5</p>
-  <h2>Confirma tu selección</h2>
+  <Card.Root class="border-0 shadow-lg rounded-2xl overflow-hidden bg-white/95 backdrop-blur-sm">
+    <div class="h-1.5 w-full bg-gradient-to-r from-[#e67a25] to-[#f59e0b]"></div>
 
-  <p class="muted">
-    Revisa que tus números estén correctos antes de confirmar.
-  </p>
+    <Card.Header class="pb-4">
+      <Card.Description class="font-black text-[#e67a25] tracking-widest uppercase text-[0.7rem] mb-1">
+        Paso 5 de 6
+      </Card.Description>
+      <Card.Title class="text-2xl font-black text-[#111111] leading-tight">
+        Confirma tus números
+      </Card.Title>
+      <p class="text-sm text-gray-500 font-medium">Revisa tu asignación antes de realizar el registro definitivo.</p>
+    </Card.Header>
 
-  <ul class="confirm-list">
-    {#each acceptedTickets as ticket, index}
-      {@const number = findNumber(selectedNumberIds[index])}
+    <Card.Content class="space-y-6">
+      <!-- Lista de confirmación -->
+      <div class="space-y-3">
+        <p class="text-xs font-black text-[#111111] uppercase tracking-wider">Asignación final:</p>
+        <ul class="space-y-2.5">
+          {#each acceptedTickets as ticket, index}
+            {@const number = findNumber(selectedNumberIds[index])}
+            <li class="flex items-center justify-between gap-4 px-4 py-3.5 rounded-xl bg-[#e67a25]/5 border border-[#e67a25]/10 font-bold">
+              <span class="text-sm text-[#444] font-mono tracking-widest">Boleto •••• {ticket.code_last4}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400 font-medium">Asignado:</span>
+                <strong class="text-[#e67a25] font-black text-xl">#{number?.number}</strong>
+              </div>
+            </li>
+          {/each}
+        </ul>
+      </div>
 
-      <li>
-        <span>Boleto •••• {ticket.code_last4}</span>
-        <strong>Número {number?.number}</strong>
-      </li>
-    {/each}
-  </ul>
+      {#if error}
+        <div class="p-3.5 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm font-bold" role="alert">
+          {error}
+        </div>
+      {/if}
 
-  {#if error}
-    <p class="error">{error}</p>
-  {/if}
-
-  <button
-    class="primary-button"
-    type="button"
-    disabled={loading}
-    on:click={onConfirm}
-  >
-    {loading ? "Confirmando..." : "Confirmar mis números"}
-  </button>
-</article>
-
-<style>
-  .card {
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.05);
-    color: inherit;
-  }
-
-  .back-button {
-    width: fit-content;
-    margin-bottom: 1rem;
-    border: 0;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.72);
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  .eyebrow {
-    margin: 0 0 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 850;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    opacity: 0.65;
-  }
-
-  h2,
-  p {
-    margin: 0;
-  }
-
-  h2 {
-    margin-bottom: 0.75rem;
-  }
-
-  .muted {
-    color: rgba(255, 255, 255, 0.68);
-  }
-
-  .confirm-list {
-    display: grid;
-    gap: 0.65rem;
-    margin: 1.25rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .confirm-list li {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.9rem;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  .error {
-    margin-top: 1rem;
-    color: #ff7373;
-  }
-
-  .primary-button {
-    width: 100%;
-    min-height: 44px;
-    margin-top: 1rem;
-    padding: 0 1.1rem;
-    border: 0;
-    border-radius: 999px;
-    background: #ffffff;
-    color: #000000;
-    font-weight: 850;
-    cursor: pointer;
-  }
-
-  .primary-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-</style>
+      <Button
+        type="button"
+        disabled={loading}
+        onclick={onConfirm}
+        class="w-full h-12 rounded-xl bg-[#111111] hover:bg-[#e67a25] text-white font-black uppercase tracking-wider shadow-md hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+      >
+        {#if loading}
+          <div class="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
+        {:else}
+          <CheckCircle2 class="h-4.5 w-4.5" />
+          Confirmar mis números ✓
+        {/if}
+      </Button>
+    </Card.Content>
+  </Card.Root>
+</div>

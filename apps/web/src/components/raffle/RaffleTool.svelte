@@ -20,29 +20,31 @@
     type TicketValidationResult,
   } from "../../lib/raffle";
 
-  let step = 1;
+  // Svelte 5 Runes para reactividad
+  let step = $state(1);
 
-  let raffle: RaffleStatus | null = null;
-  let selectedBranch: RaffleBranch | null = null;
+  let raffle = $state<RaffleStatus | null>(null);
+  let selectedBranch = $state<RaffleBranch | null>(null);
 
-  let loading = true;
-  let error = "";
+  let loading = $state(true);
+  let error = $state("");
 
-  let codesText = "";
-  let validatingCodes = false;
-  let validation: TicketBatchValidation | null = null;
-  let codesError = "";
+  let codesText = $state("");
+  let validatingCodes = $state(false);
+  let validation = $state<TicketBatchValidation | null>(null);
+  let codesError = $state("");
 
-  let numbers: RaffleNumber[] = [];
-  let loadingNumbers = false;
-  let numbersError = "";
-  let selectedNumberIds: number[] = [];
+  let numbers = $state<RaffleNumber[]>([]);
+  let loadingNumbers = $state(false);
+  let numbersError = $state("");
+  let selectedNumberIds = $state<number[]>([]);
 
-  let confirmingNumbers = false;
-  let confirmError = "";
-  let confirmedEntries: RaffleEntry[] = [];
+  let confirmingNumbers = $state(false);
+  let confirmError = $state("");
+  let confirmedEntries = $state<RaffleEntry[]>([]);
 
-  $: acceptedTickets = getAcceptedTickets(validation);
+  // Derivadas reactivas de Svelte 5
+  let acceptedTickets = $derived(getAcceptedTickets(validation));
 
   onMount(async () => {
     try {
@@ -199,78 +201,64 @@
   }
 </script>
 
-<section class="raffle">
+<div class="w-full max-w-3xl mx-auto py-4 space-y-6">
+  <!-- Cuenta pasos indicador -->
   <StepIndicator currentStep={step} />
 
   {#if loading}
-    <p class="muted">Cargando sorteo...</p>
+    <div class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="h-10 w-10 animate-spin rounded-full border-4 border-[#e67a25]/20 border-t-[#e67a25]"></div>
+      <p class="text-xs font-black text-[#e67a25] tracking-widest uppercase animate-pulse">Cargando sorteo...</p>
+    </div>
   {:else if error}
-    <p class="error">{error}</p>
+    <div class="p-5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm font-bold shadow-sm" role="alert">
+      <h3 class="font-black text-red-800 text-base mb-1">Error</h3>
+      <p>{error}</p>
+    </div>
   {:else if raffle}
-    {#if step === 1}
-      <BranchStep {raffle} onSelect={selectBranch} />
-    {:else if step === 2 && selectedBranch}
-      <CodesStep
-        {selectedBranch}
-        bind:codesText
-        loading={validatingCodes}
-        error={codesError}
-        onBack={resetBranch}
-        onValidate={handleValidateCodes}
-      />
-    {:else if step === 3 && selectedBranch && validation}
-      <ValidationStep
-        {selectedBranch}
-        {validation}
-        onBack={() => goToStep(2)}
-        onContinue={continueToNumbers}
-      />
-    {:else if step === 4}
-      <NumbersStep
-        {numbers}
-        {acceptedTickets}
-        bind:selectedNumberIds
-        loading={loadingNumbers}
-        error={numbersError}
-        onBack={() => goToStep(3)}
-        onContinue={continueToConfirm}
-      />
-    {:else if step === 5}
-      <ConfirmStep
-        {acceptedTickets}
-        {numbers}
-        {selectedNumberIds}
-        loading={confirmingNumbers}
-        error={confirmError}
-        onBack={() => goToStep(4)}
-        onConfirm={handleConfirmNumbers}
-      />
-    {:else if step === 6}
-      <SuccessStep entries={confirmedEntries} onRestart={restartFlow} />
-    {/if}
+    <!-- Contenedor animable para la transición de pasos -->
+    <div class="animate-in fade-in slide-in-from-bottom-2 duration-300">
+      {#if step === 1}
+        <BranchStep {raffle} onSelect={selectBranch} />
+      {:else if step === 2 && selectedBranch}
+        <CodesStep
+          {selectedBranch}
+          bind:codesText
+          loading={validatingCodes}
+          error={codesError}
+          onBack={resetBranch}
+          onValidate={handleValidateCodes}
+        />
+      {:else if step === 3 && selectedBranch && validation}
+        <ValidationStep
+          {selectedBranch}
+          {validation}
+          onBack={() => goToStep(2)}
+          onContinue={continueToNumbers}
+        />
+      {:else if step === 4}
+        <NumbersStep
+          {numbers}
+          {acceptedTickets}
+          bind:selectedNumberIds
+          loading={loadingNumbers}
+          error={numbersError}
+          onBack={() => goToStep(3)}
+          onContinue={continueToConfirm}
+        />
+      {:else if step === 5}
+        <ConfirmStep
+          {acceptedTickets}
+          {numbers}
+          {selectedNumberIds}
+          loading={confirmingNumbers}
+          error={confirmError}
+          onBack={() => goToStep(4)}
+          onConfirm={handleConfirmNumbers}
+        />
+      {:else if step === 6}
+        <SuccessStep entries={confirmedEntries} onRestart={restartFlow} />
+      {/if}
+    </div>
   {/if}
-</section>
-
-<style>
-  .raffle {
-    width: min(100%, 960px);
-    margin: 0 auto;
-    padding: 2rem 1rem;
-  }
-
-  .muted {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.68);
-  }
-
-  .error {
-    margin: 0;
-    color: #ff7373;
-  }
-
-  @media (min-width: 760px) {
-    .raffle {
-      padding: 4rem 1.5rem;
-    }
-  }
-</style>
+</div>

@@ -1,17 +1,37 @@
 ---
 import RaffleTool from "../../components/raffle/RaffleTool.svelte";
+import "../../styles/global.css";
 ---
 
-<main class="page">
-  <RaffleTool client:load />
-</main>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Herramienta de sorteo StarColors — elige tu número." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sorteo | StarColors</title>
+  </head>
+  <body class="min-h-screen bg-[#DBD3C6] font-sans antialiased text-[#111111] overflow-x-hidden">
+    <!-- Header Navbar -->
+    <header class="sticky top-0 z-50 w-full border-b border-gray-200/50 bg-white/90 backdrop-blur-md shadow-sm">
+      <div class="mx-auto flex h-[70px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2" aria-label="Ir al inicio">
+          <img src="/sc_logo.svg" alt="StarColors" class="h-10 w-auto" />
+          <span class="text-xs font-black uppercase tracking-wider text-[#111111] hidden sm:inline-block">Sorteo</span>
+        </a>
 
-<style>
-  .page {
-    min-height: 100dvh;
-    background:
-      radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 32rem),
-      #080808;
-    color: #ffffff;
-  }
-</style>
+        <!-- Volver al Hub -->
+        <a class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2 text-[0.85rem] font-bold text-[#111111] hover:text-[#e67a25] hover:border-[#e67a25] transition-all shadow-sm" href="/hub">
+          <span aria-hidden="true">&larr;</span>
+          Mi Hub
+        </a>
+      </div>
+    </header>
+
+    <!-- Herramienta principal -->
+    <main class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <RaffleTool client:load />
+    </main>
+  </body>
+</html>

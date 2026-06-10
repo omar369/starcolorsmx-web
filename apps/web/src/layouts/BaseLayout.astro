@@ -1,29 +1,30 @@
 ---
-import Header from "../components/site/Header.astro";
-import Footer from "../components/site/Footer.astro";
+import Navbar from "$lib/components/Navbar.svelte";
+import "../styles/global.css";
 
 const {
   title = "Pinturas StarColors",
-  description = "Cotización rápida para servicios de pintura residencial.",
+  description = "Pinturas, servicios y herramientas para clientes StarColors.",
+  showNavbar = true,
+  pageClass = "",
 } = Astro.props;
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <meta name="description" content={description} />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
   </head>
-  <body>
-  <Header />
 
-    <main class="page">
+  <body>
+    {showNavbar && <Navbar client:load />}
+
+    <main class:list={["min-h-screen", pageClass]}>
       <slot />
     </main>
-
-    <Footer /> 
   </body>
 </html>
 
@@ -41,9 +42,21 @@ const {
     box-sizing: border-box;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     margin: 0;
     min-height: 100vh;
+    background: #f8fafc;
+  }
+
+  img,
+  svg,
+  video {
+    max-width: 100%;
+    display: block;
   }
 
   a {
@@ -51,72 +64,10 @@ const {
     text-decoration: none;
   }
 
-  .page {
-    width: min(100% - 2rem, 1120px);
-    margin-inline: auto;
-    padding-block: 2rem 4rem;
-  }
-
-  .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem;
-    background: rgba(248, 250, 252, 0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  .brand {
-    font-weight: 800;
-    letter-spacing: -0.04em;
-  }
-
-  .nav {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    font-size: 0.9rem;
-  }
-
-  .nav a {
-    color: #475569;
-  }
-
-  .nav a:hover {
-    color: #0f172a;
-  }
-
-  .nav-cta {
-    padding: 0.55rem 0.85rem;
-    border-radius: 999px;
-    background: #172033;
-    color: white !important;
-    font-weight: 700;
-  }
-
-  .site-footer {
-    border-top: 1px solid #e2e8f0;
-    padding: 1.5rem 1rem;
-    color: #64748b;
-    font-size: 0.875rem;
-    text-align: center;
-  }
-
-  @media (max-width: 720px) {
-    .site-header {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .nav {
-      width: 100%;
-      overflow-x: auto;
-      padding-bottom: 0.25rem;
-    }
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
   }
 </style>

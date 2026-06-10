@@ -1,22 +1,24 @@
 <script lang="ts">
   import { loginUser, registerUser } from "../../lib/auth";
+  import * as Tabs from "$lib/components/ui/tabs/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { Label } from "$lib/components/ui/label/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import { Button } from "$lib/components/ui/button/index.js";
 
-  let mode: "register" | "login" = "register";
+  // Use string mode to easily bind to Tabs
+  let mode = $state("register");
 
-  let fullName = "";
-  let email = "";
-  let password = "";
-  let phone = "";
+  let fullName = $state("");
+  let email = $state("");
+  let password = $state("");
+  let phone = $state("");
 
-  let loading = false;
-  let error = "";
+  let loading = $state(false);
+  let error = $state("");
 
-  function setMode(nextMode: "register" | "login") {
-    mode = nextMode;
-    error = "";
-  }
-
-  async function handleSubmit() {
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
     loading = true;
     error = "";
 
@@ -55,232 +57,101 @@
   }
 </script>
 
-<section
-  class="auth-card"
-  aria-label={mode === "register" ? "Crear cuenta" : "Iniciar sesión"}
->
-  <header class="auth-card-header">
-    <p class="auth-card-kicker">Cuenta</p>
-    <h2>{mode === "register" ? "Crear cuenta" : "Iniciar sesión"}</h2>
-  </header>
+<div class="w-full max-w-[440px] animate-in fade-in zoom-in-95 duration-500">
+  <Card.Root class="border-0 shadow-2xl rounded-2xl overflow-hidden bg-white/95 backdrop-blur-sm">
+    <Card.Header class="pb-6 border-b border-gray-100 bg-white">
+      <Card.Description class="font-black text-[#e67a25] tracking-widest uppercase text-[0.7rem] mb-1">
+        Cuenta
+      </Card.Description>
+      <Card.Title class="text-[1.6rem] font-bold text-[#111111]">
+        {mode === "register" ? "Crear cuenta" : "Iniciar sesión"}
+      </Card.Title>
+    </Card.Header>
+    <Card.Content class="pt-6 px-6 sm:px-8">
+      <Tabs.Root bind:value={mode} class="w-full">
+        <Tabs.List class="grid w-full grid-cols-2 mb-8 bg-gray-100/80 p-1 rounded-xl">
+          <Tabs.Trigger value="register" class="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-[#111111] data-[state=active]:shadow-sm transition-all">
+            Registrarme
+          </Tabs.Trigger>
+          <Tabs.Trigger value="login" class="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-[#111111] data-[state=active]:shadow-sm transition-all">
+            Entrar
+          </Tabs.Trigger>
+        </Tabs.List>
+        
+        <form onsubmit={handleSubmit} class="grid gap-5">
+          {#if mode === "register"}
+            <div class="grid gap-2">
+              <Label for="fullName" class="text-sm font-bold text-[#111111]">Nombre completo</Label>
+              <Input
+                id="fullName"
+                bind:value={fullName}
+                autocomplete="name"
+                maxlength={60}
+                minlength={8}
+                required
+                class="h-12 px-4 rounded-xl border-gray-200 bg-gray-50/50 focus-visible:ring-[#e67a25] focus-visible:border-[#e67a25] transition-all"
+              />
+            </div>
+          {/if}
 
-  <div class="auth-card-body">
-    <div class="auth-tabs" role="tablist" aria-label="Modo de acceso">
-      <button
-        class:active={mode === "register"}
-        type="button"
-        aria-pressed={mode === "register"}
-        on:click={() => setMode("register")}
-      >
-        Registrarme
-      </button>
+          <div class="grid gap-2">
+            <Label for="email" class="text-sm font-bold text-[#111111]">Correo electrónico</Label>
+            <Input 
+              id="email" 
+              bind:value={email} 
+              autocomplete="email" 
+              type="email" 
+              required 
+              class="h-12 px-4 rounded-xl border-gray-200 bg-gray-50/50 focus-visible:ring-[#e67a25] focus-visible:border-[#e67a25] transition-all"
+            />
+          </div>
 
-      <button
-        class:active={mode === "login"}
-        type="button"
-        aria-pressed={mode === "login"}
-        on:click={() => setMode("login")}
-      >
-        Entrar
-      </button>
-    </div>
+          <div class="grid gap-2">
+            <Label for="password" class="text-sm font-bold text-[#111111]">Contraseña</Label>
+            <Input
+              id="password"
+              bind:value={password}
+              autocomplete={mode === "register" ? "new-password" : "current-password"}
+              maxlength={128}
+              minlength={8}
+              type="password"
+              required
+              class="h-12 px-4 rounded-xl border-gray-200 bg-gray-50/50 focus-visible:ring-[#e67a25] focus-visible:border-[#e67a25] transition-all"
+            />
+          </div>
 
-    <form on:submit|preventDefault={handleSubmit}>
-      {#if mode === "register"}
-        <label>
-          <span>Nombre completo</span>
-          <input
-            bind:value={fullName}
-            autocomplete="name"
-            maxlength="60"
-            minlength="8"
-            required
-          />
-        </label>
-      {/if}
+          {#if mode === "register"}
+            <div class="grid gap-2">
+              <Label for="phone" class="text-sm font-bold text-[#111111]">Teléfono <span class="text-gray-400 font-normal ml-1">(opcional)</span></Label>
+              <Input
+                id="phone"
+                bind:value={phone}
+                autocomplete="tel"
+                maxlength={10}
+                minlength={7}
+                type="tel"
+                class="h-12 px-4 rounded-xl border-gray-200 bg-gray-50/50 focus-visible:ring-[#e67a25] focus-visible:border-[#e67a25] transition-all"
+              />
+            </div>
+          {/if}
 
-      <label>
-        <span>Correo electrónico</span>
-        <input bind:value={email} autocomplete="email" type="email" required />
-      </label>
+          {#if error}
+            <div class="text-[0.85rem] font-bold text-red-700 bg-red-50 p-3.5 rounded-xl border border-red-200 mt-1" role="alert">
+              {error}
+            </div>
+          {/if}
 
-      <label>
-        <span>Contraseña</span>
-        <input
-          bind:value={password}
-          autocomplete={mode === "register"
-            ? "new-password"
-            : "current-password"}
-          maxlength="128"
-          minlength="8"
-          type="password"
-          required
-        />
-      </label>
-
-      {#if mode === "register"}
-        <label>
-          <span>Teléfono opcional</span>
-          <input
-            bind:value={phone}
-            autocomplete="tel"
-            maxlength="10"
-            minlength="7"
-            type="tel"
-          />
-        </label>
-      {/if}
-
-      {#if error}
-        <p class="error" role="alert">{error}</p>
-      {/if}
-
-      <button class="submit" type="submit" disabled={loading}>
-        {loading
-          ? "Procesando..."
-          : mode === "register"
-            ? "Crear cuenta"
-            : "Entrar al hub"}
-      </button>
-    </form>
-  </div>
-</section>
-
-<style>
-  .auth-card {
-    width: min(100%, 430px);
-    margin: 0 auto;
-    border: 1px solid #d8d8d4;
-    border-radius: 8px;
-    background: #ffffff;
-    box-shadow: 0 18px 60px rgba(17, 17, 17, 0.12);
-  }
-
-  .auth-card-header {
-    display: grid;
-    gap: 0.35rem;
-    border-bottom: 1px solid #e6e6e1;
-    padding: 1rem 1rem 0.85rem;
-  }
-
-  .auth-card-kicker {
-    margin: 0;
-    color: #71716b;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    line-height: 1.1;
-    text-transform: uppercase;
-  }
-
-  h2 {
-    margin: 0;
-    color: #111111;
-    font-size: 1.35rem;
-    font-weight: 820;
-    line-height: 1.1;
-  }
-
-  .auth-card-body {
-    display: grid;
-    gap: 1.05rem;
-    padding: 1rem;
-  }
-
-  .auth-tabs {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    border: 1px solid #d8d8d4;
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .auth-tabs button,
-  .submit {
-    min-height: 42px;
-    border: 0;
-    border-radius: 6px;
-    padding: 0.68rem 0.85rem;
-    font-size: 0.9rem;
-    font-weight: 780;
-    cursor: pointer;
-  }
-
-  .auth-tabs button {
-    border-radius: 0;
-    background: #ffffff;
-    color: #61615b;
-  }
-
-  .auth-tabs button + button {
-    border-left: 1px solid #d8d8d4;
-  }
-
-  .auth-tabs button.active {
-    background: #111111;
-    color: #ffffff;
-  }
-
-  form {
-    display: grid;
-    gap: 0.85rem;
-  }
-
-  label {
-    display: grid;
-    gap: 0.38rem;
-    color: #111111;
-    font-size: 0.82rem;
-    font-weight: 760;
-  }
-
-  input {
-    width: 100%;
-    min-height: 43px;
-    border: 1px solid #d8d8d4;
-    border-radius: 6px;
-    background: #ffffff;
-    color: #111111;
-    padding: 0.65rem 0.8rem;
-    outline: none;
-  }
-
-  input:focus {
-    border-color: #111111;
-    box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
-  }
-
-  .submit {
-    width: 100%;
-    margin-top: 0.2rem;
-    background: #111111;
-    color: #ffffff;
-  }
-
-  .submit:disabled {
-    cursor: not-allowed;
-    opacity: 0.52;
-  }
-
-  .error {
-    margin: 0;
-    border: 1px solid #fecdd3;
-    border-radius: 6px;
-    background: #fff1f2;
-    color: #9f1239;
-    padding: 0.65rem 0.8rem;
-    font-size: 0.8rem;
-    font-weight: 750;
-    line-height: 1.35;
-  }
-
-  @media (min-width: 760px) {
-    .auth-card-header {
-      padding: 1.15rem 1.2rem 0.95rem;
-    }
-
-    .auth-card-body {
-      padding: 1.2rem;
-    }
-  }
-</style>
+          <Button type="submit" disabled={loading} class="h-14 mt-4 w-full rounded-xl bg-[#111111] hover:bg-[#e67a25] text-white text-[1rem] font-black uppercase tracking-wider transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5">
+            {#if loading}
+              Procesando...
+            {:else if mode === "register"}
+              Crear cuenta
+            {:else}
+              Entrar al hub
+            {/if}
+          </Button>
+        </form>
+      </Tabs.Root>
+    </Card.Content>
+  </Card.Root>
+</div>

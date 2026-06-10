@@ -1,118 +1,51 @@
 <script lang="ts">
   import type { RaffleBranch, RaffleStatus } from "../../lib/raffle";
+  import * as Card from "$lib/components/ui/card/index.js";
 
-  export let raffle: RaffleStatus;
-  export let onSelect: (branch: RaffleBranch) => void;
+  // Svelte 5 props
+  let { raffle, onSelect }: { raffle: RaffleStatus; onSelect: (branch: RaffleBranch) => void } = $props();
 </script>
 
-<header class="header">
-  <p class="eyebrow">Sorteo de temporada</p>
-  <h1>{raffle.prize_title ?? raffle.title}</h1>
-  <p class="muted">Paso 1: Elige la sucursal donde realizaste tu compra.</p>
+<header class="mb-8">
+  <p class="mb-2 text-[0.75rem] font-black uppercase tracking-[0.14em] text-[#e67a25]">
+    Sorteo de temporada
+  </p>
+  <h2 class="text-3xl md:text-4xl font-black text-[#111111] leading-tight mb-3">
+    {raffle.prize_title ?? raffle.title}
+  </h2>
+  <p class="text-[0.95rem] text-gray-500 font-medium">
+    Paso 1: Selecciona la sucursal donde realizaste tu compra para validar tus boletos.
+  </p>
 </header>
 
-<div class="branch-grid">
+<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
   {#each raffle.branches as branch}
-    <button class="branch-card" type="button" on:click={() => onSelect(branch)}>
-      <div class="branch-image">
-        {#if branch.image_url}
-          <img src={branch.image_url} alt={branch.name} />
-        {:else}
-          <span>{branch.name.slice(0, 1)}</span>
-        {/if}
-      </div>
+    <button
+      type="button"
+      onclick={() => onSelect(branch)}
+      class="group text-left cursor-pointer w-full focus:outline-none"
+    >
+      <Card.Root class="h-full border-0 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden bg-white/95 backdrop-blur-sm group-hover:ring-2 group-hover:ring-[#e67a25]/50">
+        <Card.Content class="p-6 flex flex-col gap-4">
+          <!-- Imagen / inicial -->
+          <div class="flex items-center justify-center w-14 h-14 rounded-xl bg-[#e67a25]/10 text-[#e67a25] text-2xl font-black overflow-hidden shadow-inner group-hover:scale-105 transition-transform duration-300">
+            {#if branch.image_url}
+              <img src={branch.image_url} alt={branch.name} class="w-full h-full object-cover" />
+            {:else}
+              {branch.name.slice(9, 11) || branch.name.slice(0, 1)}
+            {/if}
+          </div>
 
-      <div>
-        <h2>{branch.name}</h2>
-        <p>Números {branch.number_start}–{branch.number_end}</p>
-      </div>
+          <div>
+            <h3 class="text-lg font-black text-[#111111] group-hover:text-[#e67a25] transition-colors leading-tight mb-1">
+              {branch.name}
+            </h3>
+            <p class="text-[0.8rem] text-gray-400 font-bold uppercase tracking-wider">
+              Números {branch.number_start}–{branch.number_end}
+            </p>
+          </div>
+        </Card.Content>
+      </Card.Root>
     </button>
   {/each}
 </div>
-
-<style>
-  .header {
-    display: grid;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .eyebrow {
-    margin: 0;
-    font-size: 0.75rem;
-    font-weight: 850;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    opacity: 0.65;
-  }
-
-  h1,
-  h2,
-  p {
-    margin: 0;
-  }
-
-  h1 {
-    font-size: clamp(2.25rem, 10vw, 4.5rem);
-    line-height: 0.95;
-  }
-
-  .muted {
-    color: rgba(255, 255, 255, 0.68);
-  }
-
-  .branch-grid {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .branch-card {
-    display: grid;
-    grid-template-columns: 84px 1fr;
-    gap: 1rem;
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.05);
-    color: inherit;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .branch-image {
-    display: grid;
-    place-items: center;
-    width: 84px;
-    aspect-ratio: 1;
-    overflow: hidden;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.1);
-    font-size: 2rem;
-    font-weight: 900;
-  }
-
-  .branch-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .branch-card h2 {
-    margin-bottom: 0.35rem;
-  }
-
-  @media (min-width: 760px) {
-    .branch-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-
-    .branch-card {
-      grid-template-columns: 1fr;
-    }
-
-    .branch-image {
-      width: 100%;
-    }
-  }
-</style>

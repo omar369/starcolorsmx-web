@@ -3,45 +3,15 @@
   export let totalSteps = 6;
 </script>
 
-<div class="steps" aria-label="Progreso del registro">
-  <p>Paso {currentStep} de {totalSteps}</p>
-
-  <div class="dots">
+<div class="mb-6" aria-label="Progreso del registro">
+  <p class="mb-2 text-[0.75rem] font-black uppercase tracking-[0.12em] text-[#e67a25]">
+    Paso {currentStep} de {totalSteps}
+  </p>
+  <div class="grid gap-1.5" style="grid-template-columns: repeat({totalSteps}, 1fr)">
     {#each Array(totalSteps) as _, index}
-      <span class:active={index + 1 <= currentStep}></span>
+      <span
+        class="h-1.5 rounded-full transition-all duration-300 {index + 1 <= currentStep ? 'bg-[#e67a25]' : 'bg-[#e67a25]/20'}"
+      ></span>
     {/each}
   </div>
 </div>
-
-<style>
-  .steps {
-    display: grid;
-    gap: 0.55rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .steps p {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.62);
-    font-size: 0.8rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .dots {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 0.4rem;
-  }
-
-  .dots span {
-    height: 6px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.16);
-  }
-
-  .dots span.active {
-    background: #ffffff;
-  }
-</style>
