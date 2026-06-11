@@ -481,7 +481,7 @@
             </p>
 
             <a
-              href="https://wa.me/521234567890?text=Hola,%20necesito%20ayuda%20con%20mis%20boletos%20de%20StarColors"
+              href="https://wa.me/524421878771?text=Hola,%20necesito%20ayuda%20con%20mis%20boletos%20de%20StarColors"
               target="_blank"
               class="w-full rounded-xl bg-[#25D366] hover:bg-[#20ba56] text-white font-bold h-11 transition-all flex items-center justify-center gap-2 text-sm shadow-sm"
             >
