@@ -4,19 +4,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.routes import router as api_v1_router
 from app.core.config import settings
 
+
 app = FastAPI(
     title=settings.app_name,
-    description="Para atención a clientes y cotizaciones online.",
     version=settings.api_version,
     debug=settings.debug,
+    # Deshabilitar en producción:
+    docs_url=None if settings.app_env == "production" else "/docs",
+    redoc_url=None if settings.app_env == "production" else "/redoc",
 )
+
 app.include_router(api_v1_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.backend_cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
