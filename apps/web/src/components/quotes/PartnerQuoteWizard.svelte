@@ -290,32 +290,68 @@
   }
 </script>
 
-<section class="wizard-shell" aria-label="Cotizador automatico">
-  <div class="wizard-card">
-    <header class="wizard-header">
-      <div class="wizard-title-row">
-        <p class="wizard-kicker">Cotizador automatico</p>
-        <p class="step-count">Paso {currentStep + 1} de {steps.length}</p>
+<!-- ─── Wizard shell ─────────────────────────────────────────────────────── -->
+<section
+  class="grid place-items-center w-full h-full min-h-0"
+  aria-label="Cotizador automático"
+>
+  <div
+    class="
+      grid grid-rows-[auto_minmax(0,1fr)_auto_auto]
+      w-full h-full
+      border border-white/50 rounded-[26px] sm:rounded-[28px]
+      bg-[#f8fafc] shadow-[0_30px_90px_rgba(0,0,0,0.34)]
+      overflow-hidden
+    "
+  >
+    <!-- ── Header ── -->
+    <header class="grid gap-2 px-4 pt-3 pb-2.5 border-b border-[#e2e8f0] bg-white">
+      <div class="flex items-center justify-between gap-3">
+        <p class="m-0 text-[#536173] text-[0.76rem] font-black leading-none">
+          Cotizador automático
+        </p>
+        <p class="m-0 text-[#536173] text-[0.76rem] font-black leading-none whitespace-nowrap">
+          Paso {currentStep + 1} de {steps.length}
+        </p>
       </div>
 
-      <div class="progress-dots" aria-label="Progreso del formulario">
+      <!-- Progress dots -->
+      <div class="flex gap-1.5" aria-label="Progreso del formulario">
         {#each steps as step, index}
           <span
-            class:active={index === currentStep}
-            class:done={index < currentStep}
             title={step}
+            class="
+              h-2 rounded-full transition-all duration-200 ease-out
+              {index === currentStep
+                ? 'w-6 bg-[#f5b700]'
+                : index < currentStep
+                  ? 'w-2 bg-[#172033]'
+                  : 'w-2 bg-[#d8dee8]'}
+            "
           ></span>
         {/each}
       </div>
     </header>
 
-    <div class="wizard-content">
+    <!-- ── Step content ── -->
+    <div class="block min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-4 sm:px-5">
       {#if isLoadingOptions}
-        <div class="state-box">Cargando opciones del cotizador...</div>
+        <div class="grid gap-3 place-content-center min-h-full rounded-2xl bg-[#f8fafc] text-[#475569] text-sm text-center p-4">
+          Cargando opciones del cotizador...
+        </div>
       {:else if optionsError}
-        <div class="state-box state-box--error">
-          <p>{optionsError}</p>
-          <button type="button" class="button-secondary" on:click={loadOptions}>
+        <div class="grid gap-3 place-content-center min-h-full rounded-2xl border border-[#fecdd3] bg-[#fff1f2] text-[#9f1239] text-sm text-center p-4">
+          <p class="m-0">{optionsError}</p>
+          <button
+            type="button"
+            on:click={loadOptions}
+            class="
+              self-center mx-auto min-h-[38px]
+              border-0 rounded-full bg-[#f1f5f9] text-[#172033]
+              text-[0.88rem] font-bold px-5 py-2 cursor-pointer
+              hover:bg-[#e2e8f0] transition-colors duration-150
+            "
+          >
             Reintentar
           </button>
         </div>
@@ -347,54 +383,99 @@
       {/if}
     </div>
 
+    <!-- ── Submit error ── -->
     {#if submitError}
-      <p class="submit-error" role="alert">{submitError}</p>
+      <p
+        role="alert"
+        class="
+          mx-4 mb-0 border border-[#fecdd3] rounded-xl
+          bg-[#fff1f2] text-[#9f1239]
+          text-[0.8rem] font-semibold leading-snug
+          px-3.5 py-2.5
+        "
+      >
+        {submitError}
+      </p>
     {/if}
 
-    <footer class="wizard-actions">
+    <!-- ── Footer actions ── -->
+    <footer class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-2.5 px-4 pt-2.5 pb-3.5 border-t border-[#e2e8f0] bg-white sm:px-5">
       {#if currentStep === steps.length - 1}
+        <!-- Last step buttons -->
         <button
           type="button"
-          class="button-secondary"
           on:click={startNewQuote}
           disabled={isSubmitting}
+          class="
+            min-h-[44px] border-0 rounded-full
+            bg-[#f1f5f9] text-[#172033]
+            text-[0.9rem] font-bold px-4 cursor-pointer
+            hover:bg-[#e2e8f0] transition-colors duration-150
+            disabled:opacity-40 disabled:cursor-not-allowed
+          "
         >
           Crear nuevo
         </button>
-
         <button
           type="button"
-          class="button-primary"
           on:click={goHome}
           disabled={isSubmitting}
+          class="
+            min-h-[44px] border-0 rounded-full
+            bg-[#f5b700] text-[#172033]
+            text-[0.9rem] font-bold px-4 cursor-pointer
+            hover:bg-[#e6ac00] active:scale-[0.97] transition-all duration-150
+            disabled:opacity-40 disabled:cursor-not-allowed
+          "
         >
           Regresar a Inicio
         </button>
       {:else}
+        <!-- Back button -->
         <button
           type="button"
-          class="button-secondary"
           on:click={goBack}
           disabled={currentStep === 0 || isSubmitting}
+          class="
+            min-h-[44px] border-0 rounded-full
+            bg-[#f1f5f9] text-[#172033]
+            text-[0.9rem] font-bold px-4 cursor-pointer
+            hover:bg-[#e2e8f0] transition-colors duration-150
+            disabled:opacity-40 disabled:cursor-not-allowed
+          "
         >
-          Atras
+          Atrás
         </button>
 
         {#if currentStep === steps.length - 2}
+          <!-- Submit button -->
           <button
             type="button"
-            class="button-primary"
             on:click={submitQuote}
             disabled={!options || isSubmitting}
+            class="
+              min-h-[44px] border-0 rounded-full
+              bg-[#f5b700] text-[#172033]
+              text-[0.9rem] font-bold px-4 cursor-pointer
+              hover:bg-[#e6ac00] active:scale-[0.97] transition-all duration-150
+              disabled:opacity-40 disabled:cursor-not-allowed
+            "
           >
             {isSubmitting ? "Calculando..." : "Enviar"}
           </button>
         {:else}
+          <!-- Next button -->
           <button
             type="button"
-            class="button-primary"
             on:click={goNext}
             disabled={!options || isSubmitting}
+            class="
+              min-h-[44px] border-0 rounded-full
+              bg-[#f5b700] text-[#172033]
+              text-[0.9rem] font-bold px-4 cursor-pointer
+              hover:bg-[#e6ac00] active:scale-[0.97] transition-all duration-150
+              disabled:opacity-40 disabled:cursor-not-allowed
+            "
           >
             Continuar
           </button>
@@ -403,213 +484,3 @@
     </footer>
   </div>
 </section>
-
-<style>
-  .wizard-shell {
-    display: grid;
-    place-items: center;
-    width: min(100%, 850px);
-    height: min(720px, calc(100dvh - 1.25rem));
-    min-height: 0;
-  }
-
-  .wizard-card {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
-    width: 100%;
-    height: 100%;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 28px;
-    background: #f8fafc;
-    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
-    overflow: hidden;
-  }
-
-  .wizard-header {
-    display: grid;
-    gap: 0.55rem;
-    padding: 0.9rem 1.1rem 0.75rem;
-    border-bottom: 1px solid #e2e8f0;
-    background: #fff;
-  }
-
-  .wizard-title-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-
-  .wizard-kicker,
-  .step-count {
-    margin: 0;
-    color: #536173;
-    font-size: 0.78rem;
-    font-weight: 850;
-    line-height: 1.1;
-  }
-
-  .step-count {
-    white-space: nowrap;
-  }
-
-  .progress-dots {
-    display: flex;
-    gap: 0.42rem;
-  }
-
-  .progress-dots span {
-    width: 0.62rem;
-    height: 0.62rem;
-    border-radius: 999px;
-    background: #d8dee8;
-    transition:
-      width 0.16s ease,
-      background 0.16s ease;
-  }
-
-  .progress-dots span.active {
-    width: 1.7rem;
-    background: #f5b700;
-  }
-
-  .progress-dots span.done {
-    background: #172033;
-  }
-
-  .wizard-content {
-    display: block;
-    min-height: 0;
-    overflow: hidden;
-    padding: 1.35rem 1.45rem;
-  }
-
-  .wizard-actions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    gap: 0.7rem;
-    padding: 0.78rem 1.1rem 0.95rem;
-    border-top: 1px solid #e2e8f0;
-    background: #fff;
-  }
-
-  button {
-    min-height: 42px;
-    border: 0;
-    border-radius: 999px;
-    padding: 0.68rem 0.95rem;
-    font-size: 0.9rem;
-    font-weight: 850;
-    cursor: pointer;
-  }
-
-  button:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-
-  .button-primary {
-    background: #f5b700;
-    color: #172033;
-  }
-
-  .button-secondary {
-    background: #f1f5f9;
-    color: #172033;
-  }
-
-  .state-box {
-    display: grid;
-    gap: 0.75rem;
-    align-content: center;
-    min-height: 100%;
-    border-radius: 16px;
-    background: #f8fafc;
-    color: #475569;
-    padding: 1rem;
-    text-align: center;
-  }
-
-  .state-box p {
-    margin: 0;
-  }
-
-  .state-box--error {
-    border: 1px solid #fecdd3;
-    background: #fff1f2;
-    color: #9f1239;
-  }
-
-  .submit-error {
-    margin: 0 1rem;
-    border: 1px solid #fecdd3;
-    border-radius: 12px;
-    background: #fff1f2;
-    color: #9f1239;
-    padding: 0.65rem 0.85rem;
-    font-size: 0.8rem;
-    font-weight: 750;
-  }
-
-  @media (max-width: 520px) {
-    .wizard-shell {
-      width: 100%;
-      height: calc(100svh - 5rem);
-      max-height: 620px;
-      min-height: 0;
-      padding-inline: 0.25rem;
-      padding-block: 0.5rem;
-    }
-
-    .wizard-card {
-      height: 100%;
-      border-radius: 22px;
-    }
-
-    .wizard-header {
-      gap: 0.45rem;
-      padding: 0.72rem 0.85rem 0.62rem;
-    }
-
-    .wizard-kicker,
-    .step-count {
-      font-size: 0.7rem;
-    }
-
-    .progress-dots {
-      gap: 0.32rem;
-    }
-
-    .progress-dots span {
-      width: 0.52rem;
-      height: 0.52rem;
-    }
-
-    .progress-dots span.active {
-      width: 1.35rem;
-    }
-
-    .wizard-content {
-      padding: 1rem 0.9rem;
-    }
-
-    .wizard-actions {
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-      gap: 0.55rem;
-      padding: 0.65rem 0.85rem 0.78rem;
-    }
-
-    button {
-      width: 100%;
-      min-height: 39px;
-      padding: 0.58rem 0.7rem;
-      font-size: 0.82rem;
-    }
-
-    .submit-error {
-      margin: 0 0.85rem;
-      padding: 0.55rem 0.7rem;
-      font-size: 0.74rem;
-    }
-  }
-</style>

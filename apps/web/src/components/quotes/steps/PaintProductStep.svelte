@@ -6,23 +6,41 @@
   export let errors: Record<string, string> = {};
 </script>
 
-<section class="step">
-  <div class="step-heading">
-    <p class="eyebrow">Pintura</p>
-    <h2>Producto y color</h2>
-    <p class="subtitle">
-      Elige la pintura vinilica y la intensidad del color. El calculo interno
+<section class="grid gap-3.5 min-h-0">
+  <!-- Heading -->
+  <div class="grid gap-1">
+    <p class="m-0 text-[#8a6b00] text-[0.68rem] font-black tracking-[0.08em] uppercase">
+      Pintura
+    </p>
+    <h2 class="m-0 text-[#101827] text-[clamp(1.4rem,6vw,2rem)] font-black leading-none tracking-tight">
+      Producto y color
+    </h2>
+    <p class="m-0 text-[#526070] text-[0.84rem] leading-snug">
+      Elige la pintura vinílica y la intensidad del color. El cálculo interno
       aplica el costo correspondiente.
     </p>
   </div>
 
-  <div class="form-grid">
-    <label class="field" for="paint_product">
-      <span class="field-label">Pintura vinilica <strong>*</strong></span>
+  <!-- Form -->
+  <div class="grid gap-3">
+    <!-- Pintura -->
+    <label class="grid gap-1.5 cursor-pointer" for="paint_product">
+      <span class="text-[#273549] text-[0.82rem] font-bold">
+        Pintura vinílica <strong class="text-amber-600 font-black">*</strong>
+      </span>
       <select
         id="paint_product"
         bind:value={form.paint_product}
         aria-invalid={Boolean(errors.paint_product)}
+        class="
+          w-full min-h-[44px] appearance-auto
+          border-[1.5px] border-[#d9e0ea] rounded-xl
+          bg-white text-[#172033] text-[0.9rem]
+          px-3 py-2.5 font-[inherit]
+          transition-[border-color,box-shadow] duration-150
+          focus:outline-none focus:border-amber-400 focus:shadow-[0_0_0_3px_rgba(245,183,0,0.18)]
+          aria-[invalid=true]:border-rose-500
+        "
       >
         <option value="">Selecciona una pintura</option>
         {#each options.paints as option}
@@ -30,109 +48,37 @@
         {/each}
       </select>
       {#if errors.paint_product}
-        <span class="field-error">{errors.paint_product}</span>
+        <span class="text-rose-700 text-[0.7rem] font-semibold">{errors.paint_product}</span>
       {/if}
     </label>
 
-    <label class="field" for="color_intensity">
-      <span class="field-label">Intensidad del color <strong>*</strong></span>
+    <!-- Intensidad del color -->
+    <label class="grid gap-1.5 cursor-pointer" for="color_intensity">
+      <span class="text-[#273549] text-[0.82rem] font-bold">
+        Intensidad del color <strong class="text-amber-600 font-black">*</strong>
+      </span>
       <select
         id="color_intensity"
         bind:value={form.color_intensity}
         aria-invalid={Boolean(errors.color_intensity)}
+        class="
+          w-full min-h-[44px] appearance-auto
+          border-[1.5px] border-[#d9e0ea] rounded-xl
+          bg-white text-[#172033] text-[0.9rem]
+          px-3 py-2.5 font-[inherit]
+          transition-[border-color,box-shadow] duration-150
+          focus:outline-none focus:border-amber-400 focus:shadow-[0_0_0_3px_rgba(245,183,0,0.18)]
+          aria-[invalid=true]:border-rose-500
+        "
       >
-        <option value="">Selecciona una opcion</option>
+        <option value="">Selecciona una opción</option>
         {#each options.color_intensities as option}
           <option value={option.id}>{option.name}</option>
         {/each}
       </select>
       {#if errors.color_intensity}
-        <span class="field-error">{errors.color_intensity}</span>
+        <span class="text-rose-700 text-[0.7rem] font-semibold">{errors.color_intensity}</span>
       {/if}
     </label>
   </div>
 </section>
-
-<style>
-  .step {
-    display: grid;
-    gap: 1.1rem;
-  }
-
-  .step-heading {
-    display: grid;
-    gap: 0.45rem;
-  }
-
-  .eyebrow {
-    margin: 0;
-    color: #8a6b00;
-    font-size: 0.72rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  h2 {
-    margin: 0;
-    color: #101827;
-    font-size: clamp(1.55rem, 6vw, 2.2rem);
-    line-height: 1.05;
-  }
-
-  .subtitle {
-    margin: 0;
-    color: #526070;
-    font-size: 0.9rem;
-    line-height: 1.55;
-  }
-
-  .form-grid {
-    display: grid;
-    gap: 0.9rem;
-  }
-
-  .field {
-    display: grid;
-    gap: 0.35rem;
-  }
-
-  .field-label {
-    color: #273549;
-    font-size: 0.86rem;
-    font-weight: 850;
-  }
-
-  .field-label strong {
-    color: #d97706;
-  }
-
-  select {
-    width: 100%;
-    min-height: 46px;
-    border: 1.5px solid #d9e0ea;
-    border-radius: 12px;
-    background: #fff;
-    color: #172033;
-    font: inherit;
-    font-size: 0.95rem;
-    padding: 0.72rem 0.9rem;
-  }
-
-  select:focus {
-    border-color: #f5b700;
-    box-shadow: 0 0 0 3px rgba(245, 183, 0, 0.18);
-    outline: none;
-  }
-
-  [aria-invalid="true"] {
-    border-color: #e11d48;
-  }
-
-  .field-error {
-    color: #be123c;
-    font-size: 0.78rem;
-    font-weight: 750;
-    line-height: 1.45;
-  }
-</style>

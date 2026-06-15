@@ -1,48 +1,25 @@
-<section class="step">
-  <h2>Antes de comenzar</h2>
+<section class="grid gap-4 min-h-0">
+  <!-- Heading -->
+  <div class="grid gap-1.5">
+    <h2 class="m-0 text-[#172033] text-[clamp(1.8rem,8vw,3rem)] font-black leading-none tracking-tight">
+      Antes de comenzar
+    </h2>
 
-  <p>
-    Esta precotizacion usa precios base por metro cuadrado y ajustes por
-    condiciones del trabajo: superficie, textura, preparacion, horario, altura,
-    proteccion del area y estado.
-  </p>
+    <p class="m-0 text-[#475569] leading-relaxed text-sm sm:text-base">
+      Esta precotización usa precios base por metro cuadrado y ajustes por
+      condiciones del trabajo: superficie, textura, preparación, horario, altura,
+      protección del área y estado.
+    </p>
 
-  <p>
-    El resultado es una guia inicial. Si el proyecto requiere visita tecnica,
-    fotos o ajustes manuales, el precio final puede cambiar.
-  </p>
+    <p class="m-0 text-[#475569] leading-relaxed text-sm sm:text-base">
+      El resultado es una guía inicial. Si el proyecto requiere visita técnica,
+      fotos o ajustes manuales, el precio final puede cambiar.
+    </p>
+  </div>
 
-  <div class="notice">
-    Los campos del cotizador vienen desde la API. Por ahora son datos mock; mas
-    adelante se moveran a la base de datos.
+  <!-- Info notice -->
+  <div class="rounded-2xl border border-[#e2e8f0] bg-[#f8fafc] text-[#334155] text-sm leading-relaxed p-4">
+    Los campos del cotizador vienen desde la API. Por ahora son datos de referencia;
+    más adelante se conectarán a la base de datos para personalizarse.
   </div>
 </section>
-
-<style>
-  .step {
-    display: grid;
-    gap: 1rem;
-  }
-
-  h2 {
-    margin: 0;
-    color: #172033;
-    font-size: clamp(1.8rem, 8vw, 3rem);
-    line-height: 1;
-  }
-
-  p {
-    margin: 0;
-    color: #475569;
-    line-height: 1.7;
-  }
-
-  .notice {
-    border-radius: 14px;
-    border: 1px solid #e2e8f0;
-    background: #f8fafc;
-    color: #334155;
-    line-height: 1.6;
-    padding: 1rem;
-  }
-</style>

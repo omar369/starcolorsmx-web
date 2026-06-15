@@ -10,6 +10,7 @@
   export let form: QuoteForm;
   export let options: QuoteOptions;
   export let quoteResult: QuoteResult;
+  export let onDownloadPdf: () => void;
 
   function optionName(list: BasicOption[], id: string) {
     return list.find((option) => option.id === id)?.name ?? "No especificado";
@@ -26,10 +27,7 @@
   }
 
   function money(value: number) {
-    return new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "MXN",
-    }).format(value);
+    return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(value);
   }
 
   function contactMethodLabel(value: string) {
@@ -49,12 +47,10 @@
 
   function getSurfaceSummary() {
     const importantAdjustments = quoteResult.adjustments
-      .filter((adjustment) => adjustment.percentage !== 0)
+      .filter((a) => a.percentage !== 0)
       .map(formatAdjustment);
 
-    if (importantAdjustments.length > 0) {
-      return importantAdjustments.join(", ");
-    }
+    if (importantAdjustments.length > 0) return importantAdjustments.join(", ");
 
     return [
       optionName(options.surface_states, form.surface_state),
@@ -66,346 +62,124 @@
 
   function formatAdjustment(adjustment: QuoteAdjustment) {
     const category = adjustment.category.toLowerCase();
-
-    if (category.includes("preparación")) {
-      return adjustment.option_name;
-    }
-
-    if (category.includes("textura")) {
-      return `superficie ${adjustment.option_name.toLowerCase()}`;
-    }
-
-    if (category.includes("altura")) {
-      return `trabajo en altura ${adjustment.option_name.toLowerCase()}`;
-    }
-
+    if (category.includes("preparación")) return adjustment.option_name;
+    if (category.includes("textura")) return `superficie ${adjustment.option_name.toLowerCase()}`;
+    if (category.includes("altura")) return `trabajo en altura ${adjustment.option_name.toLowerCase()}`;
     return adjustment.option_name;
   }
-
-  export let onDownloadPdf: () => void;
 </script>
 
-<section class="step">
-  <div class="success-header">
-    <p class="eyebrow">Precotización generada</p>
-    <h2>Gracias por usar la herramienta de pre-cotizaciones.</h2>
-    <p class="success-message">
+<section class="grid gap-3 min-h-0">
+  <!-- Success header -->
+  <div class="grid gap-1">
+    <p class="m-0 text-[#8a6b00] text-[0.65rem] font-black tracking-[0.08em] uppercase">
+      Precotización generada
+    </p>
+    <h2 class="m-0 text-[#172033] text-[clamp(1.25rem,5vw,1.7rem)] font-black leading-tight tracking-tight">
+      Gracias por usar la herramienta de pre-cotizaciones.
+    </h2>
+    <p class="m-0 text-[#475569] text-[0.8rem] leading-snug">
       Ya preparamos tu cotización. En el futuro también podrás recibirla por
-      <strong>{contactMethodLabel(form.contact_method)}</strong>.
+      <strong class="text-[#172033]">{contactMethodLabel(form.contact_method)}</strong>.
     </p>
   </div>
 
-  <article class="quote-document" aria-live="polite">
-    <header class="document-header">
+  <!-- Quote document card -->
+  <article class="grid gap-2 border-[1.5px] border-[#e2e8f0] rounded-2xl bg-white p-3" aria-live="polite">
+    <!-- Document header -->
+    <header class="grid grid-cols-[1fr_auto] gap-2 items-start border-b border-[#e2e8f0] pb-2">
       <div>
-        <p class="document-kicker">StarColors</p>
-        <h3>Precotización de servicio de pintura</h3>
+        <p class="m-0 text-[#8a6b00] text-[0.62rem] font-black tracking-widest uppercase">StarColors</p>
+        <h3 class="m-0 text-[#172033] text-[clamp(0.9rem,3.5vw,1.15rem)] font-black leading-tight">
+          Precotización de servicio de pintura
+        </h3>
       </div>
-
-      <div class="client-box">
-        <span>Cliente</span>
-        <strong>{val(form.customer_name)}</strong>
-        <small>
+      <div class="grid gap-0.5 rounded-xl bg-[#f8fafc] px-2.5 py-2 text-right min-w-[110px]">
+        <span class="text-[#64748b] text-[0.6rem] font-black uppercase tracking-wide">Cliente</span>
+        <strong class="text-[#172033] text-[0.74rem] leading-tight">{val(form.customer_name)}</strong>
+        <small class="text-[#64748b] text-[0.62rem] leading-tight">
           {contactMethodLabel(form.contact_method)}: {val(form.contact_value)}
         </small>
       </div>
     </header>
 
-    <div class="meta-grid">
-      <div>
-        <span>Ubicación</span>
-        <strong>
+    <!-- Meta grid: ubicación + proyecto -->
+    <div class="grid grid-cols-2 gap-1.5">
+      <div class="grid gap-0.5 rounded-xl bg-[#f8fafc] px-2.5 py-2">
+        <span class="text-[#64748b] text-[0.6rem] font-black uppercase tracking-wide">Ubicación</span>
+        <strong class="text-[#172033] text-[0.74rem] leading-tight">
           {optionName(options.states, form.state)}, {val(form.city)}
         </strong>
-        <small>CP {val(form.postal_code)}</small>
+        <small class="text-[#64748b] text-[0.62rem]">CP {val(form.postal_code)}</small>
       </div>
-
-      <div>
-        <span>Proyecto</span>
-        <strong>{getProjectDescription()}</strong>
-      </div>
-    </div>
-
-    <div class="quote-table" role="table" aria-label="Resumen de cotización">
-      <div class="quote-row quote-row-head" role="row">
-        <span role="columnheader">Cantidad</span>
-        <span role="columnheader">Servicio requerido</span>
-        <span role="columnheader">Importe</span>
-      </div>
-
-      <div class="quote-row" role="row">
-        <div class="quantity-cell" role="cell">
-          <strong>{quoteResult.square_meters}</strong>
-          <span>m²</span>
-        </div>
-
-        <div class="service-cell" role="cell">
-          <strong>{quoteResult.paint_product_name}</strong>
-          <p>{getSurfaceSummary()}</p>
-        </div>
-
-        <div class="amount-cell" role="cell">
-          <strong>{money(quoteResult.estimated_price)}</strong>
-        </div>
+      <div class="grid gap-0.5 rounded-xl bg-[#f8fafc] px-2.5 py-2">
+        <span class="text-[#64748b] text-[0.6rem] font-black uppercase tracking-wide">Proyecto</span>
+        <strong class="text-[#172033] text-[0.74rem] leading-tight">{getProjectDescription()}</strong>
       </div>
     </div>
 
-    <div class="document-note">
-      <strong>Importante:</strong>
-      Este resultado es una pre-cotización generada con los datos capturados. El
-      importe final puede cambiar después de una revisión técnica o validación presencial.
+    <!-- Quote table -->
+    <div class="grid overflow-hidden border border-[#e2e8f0] rounded-xl" role="table" aria-label="Resumen de cotización">
+      <!-- Head -->
+      <div class="grid grid-cols-[0.5fr_1.4fr_0.9fr] bg-[#172033]" role="row">
+        <span class="px-2 py-1.5 text-white text-[0.56rem] font-black uppercase tracking-wider" role="columnheader">Cant.</span>
+        <span class="px-2 py-1.5 text-white text-[0.56rem] font-black uppercase tracking-wider border-l border-white/10" role="columnheader">Servicio</span>
+        <span class="px-2 py-1.5 text-white text-[0.56rem] font-black uppercase tracking-wider border-l border-white/10 text-right" role="columnheader">Importe</span>
+      </div>
+      <!-- Row -->
+      <div class="grid grid-cols-[0.5fr_1.4fr_0.9fr]" role="row">
+        <div class="px-2 py-2 grid gap-0 border-r border-[#e2e8f0]" role="cell">
+          <strong class="text-[#172033] text-[0.95rem] font-black leading-none">{quoteResult.square_meters}</strong>
+          <span class="text-[#64748b] text-[0.64rem] font-black">m²</span>
+        </div>
+        <div class="px-2 py-2 grid gap-0.5 border-r border-[#e2e8f0]" role="cell">
+          <strong class="text-[#172033] text-[0.74rem] leading-tight">{quoteResult.paint_product_name}</strong>
+          <p class="m-0 text-[#475569] text-[0.64rem] leading-snug">{getSurfaceSummary()}</p>
+        </div>
+        <div class="px-2 py-2 flex items-center justify-end" role="cell">
+          <strong class="text-emerald-800 text-[clamp(0.9rem,3.5vw,1.1rem)] font-black leading-none text-right">
+            {money(quoteResult.estimated_price)}
+          </strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div class="rounded-xl bg-[#fffbeb] text-[#78350f] text-[0.68rem] leading-snug px-2.5 py-2">
+      <strong>Importante:</strong> Este resultado es una pre-cotización generada con los datos capturados.
+      El importe final puede cambiar después de una revisión técnica o validación presencial.
     </div>
   </article>
 
-  <div class="future-files">
-    <p>Próximamente podrás descargar aquí:</p>
-
-    <div class="file-actions">
-      <button type="button" on:click={onDownloadPdf}>Cotización en PDF</button>
-      <button type="button" disabled>Aviso de privacidad en PDF</button>
+  <!-- PDF download -->
+  <div class="grid gap-2 border-[1.5px] border-[#e2e8f0] rounded-2xl bg-[#f8fafc] p-3">
+    <p class="m-0 text-[#475569] text-[0.76rem] font-bold">Descarga tu cotización</p>
+    <div class="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        on:click={onDownloadPdf}
+        class="
+          flex items-center justify-center min-h-[36px]
+          border border-dashed border-[#f5b700] rounded-full
+          bg-white text-[#172033] text-[0.7rem] font-bold
+          px-3 cursor-pointer
+          hover:bg-[#fffbeb] transition-colors duration-150
+        "
+      >
+        PDF de cotización
+      </button>
+      <button
+        type="button"
+        disabled
+        class="
+          flex items-center justify-center min-h-[36px]
+          border border-dashed border-[#cbd5e1] rounded-full
+          bg-white text-[#64748b] text-[0.7rem] font-bold
+          px-3 opacity-60 cursor-not-allowed
+        "
+      >
+        Aviso de privacidad
+      </button>
     </div>
   </div>
 </section>
-
-<style>
-  .step {
-    display: grid;
-    gap: 0.7rem;
-    min-height: 0;
-  }
-
-  .success-header {
-    display: grid;
-    gap: 0.34rem;
-  }
-
-  .eyebrow,
-  .document-kicker {
-    margin: 0;
-    color: #8a6b00;
-    font-size: 0.66rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  h2 {
-    margin: 0;
-    color: #172033;
-    font-size: clamp(1.25rem, 5.6vw, 1.8rem);
-    line-height: 1;
-    letter-spacing: -0.04em;
-  }
-
-  h3 {
-    margin: 0;
-    color: #172033;
-    font-size: clamp(0.95rem, 4vw, 1.25rem);
-    line-height: 1.08;
-    letter-spacing: -0.03em;
-  }
-
-  .success-message {
-    margin: 0;
-    color: #475569;
-    font-size: 0.78rem;
-    line-height: 1.38;
-  }
-
-  .success-message strong {
-    color: #172033;
-  }
-
-  .quote-document,
-  .future-files {
-    border: 1.5px solid #e2e8f0;
-    border-radius: 15px;
-    background: #fff;
-  }
-
-  .quote-document {
-    display: grid;
-    gap: 0.6rem;
-    padding: 0.7rem;
-  }
-
-  .document-header {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(125px, 0.7fr);
-    gap: 0.65rem;
-    align-items: start;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 0.55rem;
-  }
-
-  .client-box,
-  .meta-grid div {
-    display: grid;
-    gap: 0.14rem;
-    border-radius: 11px;
-    background: #f8fafc;
-    padding: 0.52rem;
-  }
-
-  .client-box span,
-  .meta-grid span {
-    color: #64748b;
-    font-size: 0.62rem;
-    font-weight: 850;
-    text-transform: uppercase;
-  }
-
-  .client-box strong,
-  .meta-grid strong {
-    color: #172033;
-    font-size: 0.74rem;
-    line-height: 1.22;
-  }
-
-  .client-box small,
-  .meta-grid small {
-    color: #64748b;
-    font-size: 0.66rem;
-    line-height: 1.2;
-  }
-
-  .meta-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.45rem;
-  }
-
-  .quote-table {
-    display: grid;
-    overflow: hidden;
-    border: 1px solid #e2e8f0;
-    border-radius: 13px;
-  }
-
-  .quote-row {
-    display: grid;
-    grid-template-columns: 0.5fr 1.45fr 0.9fr;
-  }
-
-  .quote-row > * {
-    padding: 0.5rem;
-    border-right: 1px solid #e2e8f0;
-  }
-
-  .quote-row > *:last-child {
-    border-right: 0;
-  }
-
-  .quote-row-head {
-    background: #172033;
-    color: #fff;
-  }
-
-  .quote-row-head span {
-    font-size: 0.58rem;
-    font-weight: 900;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .quantity-cell,
-  .amount-cell,
-  .service-cell {
-    display: grid;
-    align-content: center;
-    gap: 0.12rem;
-  }
-
-  .quantity-cell strong {
-    color: #172033;
-    font-size: 0.98rem;
-    line-height: 1;
-  }
-
-  .quantity-cell span {
-    color: #64748b;
-    font-size: 0.68rem;
-    font-weight: 800;
-  }
-
-  .service-cell strong {
-    color: #172033;
-    font-size: 0.74rem;
-  }
-
-  .service-cell p {
-    margin: 0;
-    color: #475569;
-    font-size: 0.68rem;
-    line-height: 1.32;
-  }
-
-  .amount-cell {
-    justify-items: end;
-    text-align: right;
-  }
-
-  .amount-cell strong {
-    color: #14532d;
-    font-size: clamp(0.92rem, 4.2vw, 1.2rem);
-    line-height: 1;
-  }
-
-  .document-note {
-    border-radius: 11px;
-    background: #fffbeb;
-    color: #78350f;
-    font-size: 0.68rem;
-    line-height: 1.34;
-    padding: 0.55rem;
-  }
-
-  .future-files {
-    display: grid;
-    gap: 0.45rem;
-    padding: 0.62rem;
-    background: #f8fafc;
-  }
-
-  .future-files p {
-    margin: 0;
-    color: #475569;
-    font-size: 0.72rem;
-    font-weight: 750;
-  }
-
-  .file-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.45rem;
-  }
-
-  .file-actions button {
-    min-height: 33px;
-    border: 1px dashed #cbd5e1;
-    border-radius: 999px;
-    background: #fff;
-    color: #64748b;
-    font-size: 0.66rem;
-    font-weight: 850;
-  }
-
-  .file-actions button:disabled {
-    opacity: 0.72;
-  }
-
-  @media (max-width: 520px) {
-    .document-header {
-      grid-template-columns: 1fr;
-      gap: 0.42rem;
-    }
-
-    .meta-grid {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .quote-row > * {
-      padding: 0.42rem;
-    }
-  }
-</style>

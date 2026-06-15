@@ -10,7 +10,6 @@
       form.preparation = form.preparation.filter((id) => id !== optionId);
       return;
     }
-
     form.preparation = [...form.preparation, optionId];
   }
 
@@ -19,23 +18,41 @@
   }
 </script>
 
-<section class="step">
-  <div class="step-heading">
-    <p class="eyebrow">Superficie</p>
-    <h2>Estado del área</h2>
-    <p class="subtitle">
-      Describe cómo está la superficie y qué preparación necesita antes de
-      pintar.
+<section class="grid gap-3 min-h-0">
+  <!-- Heading -->
+  <div class="grid gap-1">
+    <p class="m-0 text-[#8a6b00] text-[0.65rem] font-black tracking-[0.08em] uppercase">
+      Superficie
+    </p>
+    <h2 class="m-0 text-[#101827] text-[clamp(1.3rem,5.5vw,1.9rem)] font-black leading-none tracking-tight">
+      Estado del área
+    </h2>
+    <p class="m-0 text-[#526070] text-[0.82rem] leading-snug">
+      Describe cómo está la superficie y qué preparación necesita antes de pintar.
     </p>
   </div>
 
-  <div class="form-grid">
-    <label class="field field-half" for="surface_state">
-      <span class="field-label">Estado <strong>*</strong></span>
+  <!-- Form grid: 2 cols mobile -->
+  <div class="grid grid-cols-2 gap-2.5 items-start">
+
+    <!-- Estado de superficie -->
+    <label class="grid gap-1 cursor-pointer min-w-0" for="surface_state">
+      <span class="text-[#273549] text-[0.78rem] font-bold leading-tight">
+        Estado <strong class="text-amber-600 font-black">*</strong>
+      </span>
       <select
         id="surface_state"
         bind:value={form.surface_state}
         aria-invalid={Boolean(errors.surface_state)}
+        class="
+          w-full min-h-[42px] appearance-auto
+          border-[1.5px] border-[#d9e0ea] rounded-xl
+          bg-white text-[#172033] text-[0.84rem]
+          px-2.5 py-2 font-[inherit] text-ellipsis
+          transition-[border-color,box-shadow] duration-150
+          focus:outline-none focus:border-amber-400 focus:shadow-[0_0_0_3px_rgba(245,183,0,0.18)]
+          aria-[invalid=true]:border-rose-500
+        "
       >
         <option value="">Selecciona</option>
         {#each options.surface_states as option}
@@ -43,16 +60,28 @@
         {/each}
       </select>
       {#if errors.surface_state}
-        <span class="field-error">{errors.surface_state}</span>
+        <span class="text-rose-700 text-[0.68rem] font-semibold">{errors.surface_state}</span>
       {/if}
     </label>
 
-    <label class="field field-half" for="texture">
-      <span class="field-label">Textura <strong>*</strong></span>
+    <!-- Textura -->
+    <label class="grid gap-1 cursor-pointer min-w-0" for="texture">
+      <span class="text-[#273549] text-[0.78rem] font-bold leading-tight">
+        Textura <strong class="text-amber-600 font-black">*</strong>
+      </span>
       <select
         id="texture"
         bind:value={form.texture}
         aria-invalid={Boolean(errors.texture)}
+        class="
+          w-full min-h-[42px] appearance-auto
+          border-[1.5px] border-[#d9e0ea] rounded-xl
+          bg-white text-[#172033] text-[0.84rem]
+          px-2.5 py-2 font-[inherit] text-ellipsis
+          transition-[border-color,box-shadow] duration-150
+          focus:outline-none focus:border-amber-400 focus:shadow-[0_0_0_3px_rgba(245,183,0,0.18)]
+          aria-[invalid=true]:border-rose-500
+        "
       >
         <option value="">Selecciona</option>
         {#each options.textures as option}
@@ -60,16 +89,28 @@
         {/each}
       </select>
       {#if errors.texture}
-        <span class="field-error">{errors.texture}</span>
+        <span class="text-rose-700 text-[0.68rem] font-semibold">{errors.texture}</span>
       {/if}
     </label>
 
-    <label class="field field-full" for="area_protection">
-      <span class="field-label">Protección del área <strong>*</strong></span>
+    <!-- Protección del área — full width -->
+    <label class="grid gap-1 cursor-pointer col-span-2" for="area_protection">
+      <span class="text-[#273549] text-[0.78rem] font-bold leading-tight">
+        Protección del área <strong class="text-amber-600 font-black">*</strong>
+      </span>
       <select
         id="area_protection"
         bind:value={form.area_protection}
         aria-invalid={Boolean(errors.area_protection)}
+        class="
+          w-full min-h-[42px] appearance-auto
+          border-[1.5px] border-[#d9e0ea] rounded-xl
+          bg-white text-[#172033] text-[0.84rem]
+          px-2.5 py-2 font-[inherit]
+          transition-[border-color,box-shadow] duration-150
+          focus:outline-none focus:border-amber-400 focus:shadow-[0_0_0_3px_rgba(245,183,0,0.18)]
+          aria-[invalid=true]:border-rose-500
+        "
       >
         <option value="">Selecciona una opción</option>
         {#each options.area_protections as option}
@@ -77,224 +118,57 @@
         {/each}
       </select>
       {#if errors.area_protection}
-        <span class="field-error">{errors.area_protection}</span>
+        <span class="text-rose-700 text-[0.68rem] font-semibold">{errors.area_protection}</span>
       {/if}
     </label>
 
-    <div class="field field-full">
-      <div class="preparation-header">
-        <span class="field-label"
-          >Preparación de superficie <strong>*</strong></span
-        >
-        <span class="field-hint">Puedes elegir más de una</span>
+    <!-- Preparación — full width, toggle buttons -->
+    <div class="grid gap-1.5 col-span-2">
+      <div class="flex items-baseline justify-between gap-3">
+        <span class="text-[#273549] text-[0.78rem] font-bold leading-tight">
+          Preparación de superficie <strong class="text-amber-600 font-black">*</strong>
+        </span>
+        <span class="text-[#64748b] text-[0.68rem] font-semibold shrink-0">Puedes elegir más de una</span>
       </div>
 
-      <div class="preparation-grid" aria-invalid={Boolean(errors.preparation)}>
+      <div
+        class="grid grid-cols-2 gap-1.5 sm:grid-cols-3"
+        aria-invalid={Boolean(errors.preparation)}
+      >
         {#each options.preparations as option}
           <button
             type="button"
-            class:selected={isPreparationSelected(option.id)}
-            class="preparation-option"
             on:click={() => togglePreparation(option.id)}
             aria-pressed={isPreparationSelected(option.id)}
+            class="
+              flex items-center gap-2 min-h-[36px]
+              border-[1.5px] rounded-xl
+              text-[0.76rem] font-bold text-left
+              px-2.5 py-2 cursor-pointer
+              transition-[border-color,background] duration-150
+              {isPreparationSelected(option.id)
+                ? 'border-amber-400 bg-[#fff8dc] text-[#172033]'
+                : 'border-[#d9e0ea] bg-white text-[#273549]'}
+            "
           >
-            <span class="radio-dot" aria-hidden="true"></span>
+            <!-- Radio dot -->
+            <span
+              aria-hidden="true"
+              class="
+                inline-block w-3 h-3 shrink-0 rounded-full border-2 transition-all duration-150
+                {isPreparationSelected(option.id)
+                  ? 'border-[#172033] shadow-[inset_0_0_0_3px_#f5b700]'
+                  : 'border-[#cbd5e1] bg-white'}
+              "
+            ></span>
             <span>{option.name}</span>
           </button>
         {/each}
       </div>
 
       {#if errors.preparation}
-        <span class="field-error">{errors.preparation}</span>
+        <span class="text-rose-700 text-[0.68rem] font-semibold">{errors.preparation}</span>
       {/if}
     </div>
   </div>
 </section>
-
-<style>
-  .step {
-    display: grid;
-    gap: 0.9rem;
-  }
-
-  .step-heading {
-    display: grid;
-    gap: 0.34rem;
-  }
-
-  .eyebrow {
-    margin: 0;
-    color: #8a6b00;
-    font-size: 0.68rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  h2 {
-    margin: 0;
-    color: #101827;
-    font-size: clamp(1.38rem, 5.6vw, 2rem);
-    line-height: 1;
-    letter-spacing: -0.035em;
-  }
-
-  .subtitle {
-    margin: 0;
-    color: #526070;
-    font-size: 0.82rem;
-    line-height: 1.4;
-  }
-
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.72rem;
-    align-items: start;
-  }
-
-  .field {
-    display: grid;
-    gap: 0.28rem;
-    min-width: 0;
-  }
-
-  .field-half {
-    grid-column: span 1;
-  }
-
-  .field-full {
-    grid-column: 1 / -1;
-  }
-
-  .field-label {
-    color: #273549;
-    font-size: 0.78rem;
-    font-weight: 850;
-    line-height: 1.2;
-  }
-
-  .field-label strong {
-    color: #d97706;
-  }
-
-  .field-hint {
-    color: #64748b;
-    font-size: 0.7rem;
-    font-weight: 750;
-  }
-
-  select {
-    width: 100%;
-    min-height: 40px;
-    border: 1.5px solid #d9e0ea;
-    border-radius: 10px;
-    background: #fff;
-    color: #172033;
-    font: inherit;
-    font-size: 0.86rem;
-    padding: 0.56rem 0.68rem;
-  }
-
-  select:focus {
-    border-color: #f5b700;
-    box-shadow: 0 0 0 3px rgba(245, 183, 0, 0.16);
-    outline: none;
-  }
-
-  [aria-invalid="true"] {
-    border-color: #e11d48;
-  }
-
-  .preparation-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-
-  .preparation-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.45rem;
-  }
-
-  .preparation-option {
-    display: flex;
-    align-items: center;
-    gap: 0.42rem;
-    min-height: 36px;
-    border: 1.5px solid #d9e0ea;
-    border-radius: 10px;
-    background: #fff;
-    color: #273549;
-    padding: 0.45rem 0.52rem;
-    font: inherit;
-    font-size: 0.76rem;
-    font-weight: 780;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .preparation-option.selected {
-    border-color: #f5b700;
-    background: #fff8dc;
-    color: #172033;
-  }
-
-  .radio-dot {
-    width: 0.72rem;
-    height: 0.72rem;
-    flex: 0 0 auto;
-    border: 2px solid #cbd5e1;
-    border-radius: 999px;
-    background: #fff;
-  }
-
-  .preparation-option.selected .radio-dot {
-    border-color: #172033;
-    box-shadow: inset 0 0 0 3px #f5b700;
-  }
-
-  .field-error {
-    color: #be123c;
-    font-size: 0.68rem;
-    font-weight: 750;
-    line-height: 1.25;
-  }
-
-  @media (min-width: 680px) {
-    .step {
-      gap: 1.05rem;
-    }
-
-    .form-grid {
-      gap: 0.9rem;
-    }
-
-    select {
-      min-height: 44px;
-      font-size: 0.92rem;
-      padding: 0.68rem 0.82rem;
-    }
-
-    .field-label {
-      font-size: 0.84rem;
-    }
-
-    .subtitle {
-      font-size: 0.9rem;
-    }
-
-    .preparation-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.55rem;
-    }
-
-    .preparation-option {
-      min-height: 40px;
-      font-size: 0.82rem;
-      padding: 0.55rem 0.62rem;
-    }
-  }
-</style>
