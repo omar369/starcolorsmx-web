@@ -292,7 +292,7 @@
 
 <!-- ─── Wizard shell ─────────────────────────────────────────────────────── -->
 <section
-  class="grid place-items-center w-full h-full min-h-0"
+  class="grid place-items-center w-full max-w-[860px] mx-auto h-[min(720px,calc(100dvh-2.5rem))] px-3 sm:px-5 min-h-0"
   aria-label="Cotizador automático"
 >
   <div

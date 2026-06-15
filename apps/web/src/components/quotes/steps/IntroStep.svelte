@@ -17,9 +17,4 @@
     </p>
   </div>
 
-  <!-- Info notice -->
-  <div class="rounded-2xl border border-[#e2e8f0] bg-[#f8fafc] text-[#334155] text-sm leading-relaxed p-4">
-    Los campos del cotizador vienen desde la API. Por ahora son datos de referencia;
-    más adelante se conectarán a la base de datos para personalizarse.
-  </div>
 </section>

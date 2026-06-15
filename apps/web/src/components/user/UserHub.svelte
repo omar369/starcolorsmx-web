@@ -602,7 +602,9 @@
                             emailStatusType = "";
                           }
                         }}
-                        class="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-[#e67a25]/10 hover:bg-[#e67a25] hover:text-white text-[#e67a25] text-xs font-bold transition-all"
+                        disabled
+                        title="Próximamente disponible"
+                        class="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-gray-100 text-gray-400 text-xs font-bold cursor-not-allowed opacity-60"
                       >
                         <Mail class="h-3 w-3" />
                         Enviar
