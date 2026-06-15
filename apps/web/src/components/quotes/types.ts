@@ -62,6 +62,7 @@ export interface QuoteAdjustment {
 }
 
 export interface QuoteResult {
+  id?: number;
   customer_name: string;
   paint_product: string;
   paint_product_name: string;
@@ -72,4 +73,6 @@ export interface QuoteResult {
   subtotal: number;
   adjustments: QuoteAdjustment[];
   estimated_price: number;
+  created_at?: string;
+  is_expired?: boolean;
 }

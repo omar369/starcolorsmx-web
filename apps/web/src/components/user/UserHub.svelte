@@ -142,20 +142,23 @@
   }
 
   function apiUrl(path: string) {
-    const configuredBaseUrl = import.meta.env.PUBLIC_API_BASE_URL?.trim();
+    const configuredBaseUrl =
+      import.meta.env.PUBLIC_API_BASE_URL?.trim() ||
+      import.meta.env.PUBLIC_API_URL?.trim();
     const baseUrl =
       configuredBaseUrl && configuredBaseUrl.length > 0
         ? configuredBaseUrl
-        : `http://${window.location.hostname}:8000`;
+        : "http://localhost:8000";
 
     const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
+    // Avoid double /api/v1 if the base URL already ends with it
     if (
       normalizedBaseUrl.endsWith("/api/v1") &&
       normalizedPath.startsWith("/api/v1")
     ) {
-      return `${normalizedBaseUrl}${normalizedPath.slice(7)}`;
+      return `${normalizedBaseUrl}${normalizedPath.slice("/api/v1".length)}`;
     }
 
     return `${normalizedBaseUrl}${normalizedPath}`;

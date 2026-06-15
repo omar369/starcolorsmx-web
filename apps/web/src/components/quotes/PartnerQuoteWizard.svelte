@@ -268,11 +268,13 @@
   }
 
   function apiUrl(path: string) {
-    const configuredBaseUrl = import.meta.env.PUBLIC_API_BASE_URL?.trim();
+    const configuredBaseUrl =
+      import.meta.env.PUBLIC_API_BASE_URL?.trim() ||
+      import.meta.env.PUBLIC_API_URL?.trim();
     const baseUrl =
       configuredBaseUrl && configuredBaseUrl.length > 0
         ? configuredBaseUrl
-        : `http://${window.location.hostname}:8000`;
+        : "http://localhost:8000";
 
     const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
