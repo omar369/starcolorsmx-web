@@ -18,7 +18,7 @@ class QuoteCreate(BaseModel):
     occupancy: str = Field(min_length=2, max_length=80)
     height_risk: str = Field(min_length=2, max_length=80)
     area_protection: str = Field(min_length=2, max_length=80)
-    preparation: list[str] = Field(min_length=1, max_length=20)
+    preparation: list[str] = Field(default=[], max_length=20)
     schedule: str = Field(min_length=2, max_length=80)
     place_activities: str | None = Field(default=None, max_length=400)
 
@@ -89,8 +89,10 @@ class QuoteCreate(BaseModel):
     @field_validator("preparation")
     @classmethod
     def validate_preparation(cls, value: list[str]) -> list[str]:
+        # Lista vacía es válida: significa que no se requiere preparación
+        # y no se aplica ningún ajuste de costo en ese rubro.
         if not value:
-            raise ValueError("Debes de elegir al menos una preparación")
+            return []
 
         unique_values = list(dict.fromkeys(value))
 

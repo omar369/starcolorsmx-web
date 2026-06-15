@@ -49,8 +49,9 @@ export interface QuoteForm {
   wants_offers: boolean;
 }
 
-export interface QuotePayload extends Omit<QuoteForm, "square_meters"> {
+export interface QuotePayload extends Omit<QuoteForm, "square_meters" | "place_activities"> {
   square_meters: number;
+  place_activities: string | null;
 }
 
 export interface QuoteAdjustment {

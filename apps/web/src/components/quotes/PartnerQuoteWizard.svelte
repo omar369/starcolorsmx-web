@@ -37,7 +37,7 @@
     [],
     ["property_type", "work_location", "square_meters", "service_type"],
     ["paint_product", "color_intensity"],
-    ["surface_state", "texture", "preparation", "area_protection"],
+    ["surface_state", "texture", "area_protection"],
     ["advance_difficulty", "occupancy", "height_risk", "schedule"],
     ["state", "city", "postal_code"],
     ["customer_name", "contact_method", "contact_value"],
@@ -231,7 +231,7 @@
 
     if (field === "postal_code") {
       if (!/^\d{5}$/.test(form.postal_code)) {
-        return "Ingresa un codigo postal de 5 digitos.";
+        return "Ingresa un código postal de 5 dígitos.";
       }
       return "";
     }
@@ -241,15 +241,23 @@
         form.contact_method === "email" &&
         !form.contact_value.includes("@")
       ) {
-        return "Ingresa un correo valido.";
+        return "Ingresa un correo válido.";
       }
 
       if (form.contact_method === "whatsapp") {
         const digits = form.contact_value.replace(/\D/g, "");
         if (digits.length < 10) {
-          return "Ingresa un WhatsApp de al menos 10 digitos.";
+          return "Ingresa un WhatsApp de al menos 10 dígitos.";
         }
       }
+    }
+
+    // Validación para campos de lista (preparation es array de strings)
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return "Selecciona al menos una opción.";
+      }
+      return "";
     }
 
     if (typeof value === "string" && value.trim() === "") {
@@ -259,11 +267,13 @@
     return "";
   }
 
+
   function toPayload(source: QuoteForm): QuotePayload {
     return {
       ...source,
       square_meters: Number(source.square_meters),
-      place_activities: source.place_activities.trim(),
+      // Pydantic espera null, no string vacío
+      place_activities: source.place_activities.trim() || null,
     };
   }
 

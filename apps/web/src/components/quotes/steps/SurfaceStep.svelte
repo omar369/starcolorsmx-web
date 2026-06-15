@@ -126,7 +126,8 @@
     <div class="grid gap-1.5 col-span-2">
       <div class="flex items-baseline justify-between gap-3">
         <span class="text-[#273549] text-[0.78rem] font-bold leading-tight">
-          Preparación de superficie <strong class="text-amber-600 font-black">*</strong>
+          Preparación de superficie
+          <span class="text-[#64748b] font-normal text-[0.7rem]">(opcional)</span>
         </span>
         <span class="text-[#64748b] text-[0.68rem] font-semibold shrink-0">Puedes elegir más de una</span>
       </div>
