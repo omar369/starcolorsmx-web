@@ -23,7 +23,13 @@
     HelpCircle,
     Phone,
     Info,
+    FileText,
+    Download,
+    Mail,
+    Calendar,
+    Send,
   } from "@lucide/svelte";
+  import { getToken } from "../../lib/auth";
 
   let user = $state<AuthUser | null>(null);
   let loading = $state(true);
@@ -31,6 +37,14 @@
   let raffle = $state<RaffleStatus | null>(null);
   let myEntries = $state<RaffleEntry[]>([]);
   let loadingRaffle = $state(true);
+
+  let quotes = $state<any[]>([]);
+  let loadingQuotes = $state(true);
+  let sendingEmailId = $state<number | null>(null);
+  let emailStatusMsg = $state<string>("");
+  let emailStatusType = $state<"success" | "error" | "">("");
+  let customEmailDest = $state<string>("");
+  let activeEmailModalId = $state<number | null>(null);
 
   onMount(async () => {
     const storedUser = getStoredUser();
@@ -57,11 +71,95 @@
       console.warn("Sorteo no disponible o error de comunicación:", err);
       raffle = null;
       myEntries = [];
+    }
+
+    try {
+      const token = getToken();
+      if (token) {
+        const url = apiUrl(`/api/v1/quotes/my`);
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          quotes = await response.json();
+        }
+      }
+    } catch (err) {
+      console.error("Error al cargar cotizaciones:", err);
     } finally {
       loading = false;
       loadingRaffle = false;
+      loadingQuotes = false;
     }
   });
+
+  async function sendQuoteByEmail(quoteId: number, defaultEmail: string) {
+    sendingEmailId = quoteId;
+    emailStatusMsg = "";
+    emailStatusType = "";
+
+    const emailDest = customEmailDest.trim() || defaultEmail;
+    if (!emailDest || !emailDest.includes("@")) {
+      emailStatusMsg = "Por favor ingresa un correo válido.";
+      emailStatusType = "error";
+      sendingEmailId = null;
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const url = apiUrl(`/api/v1/quotes/${quoteId}/send-email`);
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ email: emailDest }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || "Error al enviar el correo.");
+      }
+
+      emailStatusMsg = "¡Correo enviado exitosamente con tu PDF!";
+      emailStatusType = "success";
+      customEmailDest = "";
+      setTimeout(() => {
+        activeEmailModalId = null;
+        emailStatusMsg = "";
+        emailStatusType = "";
+      }, 3000);
+    } catch (err: any) {
+      emailStatusMsg = err.message || "No se pudo enviar el correo.";
+      emailStatusType = "error";
+    } finally {
+      sendingEmailId = null;
+    }
+  }
+
+  function apiUrl(path: string) {
+    const configuredBaseUrl = import.meta.env.PUBLIC_API_BASE_URL?.trim();
+    const baseUrl =
+      configuredBaseUrl && configuredBaseUrl.length > 0
+        ? configuredBaseUrl
+        : `http://${window.location.hostname}:8000`;
+
+    const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    if (
+      normalizedBaseUrl.endsWith("/api/v1") &&
+      normalizedPath.startsWith("/api/v1")
+    ) {
+      return `${normalizedBaseUrl}${normalizedPath.slice(7)}`;
+    }
+
+    return `${normalizedBaseUrl}${normalizedPath}`;
+  }
 
   function goToRaffle() {
     window.location.href = "/tools/raffle";
@@ -400,6 +498,169 @@
                   Ingresa los códigos de tus boletos y selecciona tus números
                   para participar.
                 </p>
+              </div>
+            {/if}
+          </Card.Content>
+        </Card.Root>
+
+        <!-- CARD DE HISTORIAL DE COTIZACIONES -->
+        <Card.Root
+          class="border-0 shadow-lg rounded-2xl bg-white overflow-hidden mt-8"
+        >
+          <Card.Header class="pb-3">
+            <Card.Title
+              class="text-xl font-black text-[#111111] flex items-center gap-2"
+            >
+              <FileText class="h-5 w-5 text-[#e67a25]" />
+              Mis Presupuestos Guardados
+            </Card.Title>
+          </Card.Header>
+
+          <Card.Content>
+            {#if loadingQuotes}
+              <div class="py-8 text-center">
+                <div
+                  class="h-6 w-6 animate-spin rounded-full border-2 border-[#e67a25]/20 border-t-[#e67a25] mx-auto mb-2"
+                ></div>
+                <p class="text-xs text-gray-400">Buscando tus presupuestos...</p>
+              </div>
+            {:else if quotes.length > 0}
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {#each quotes as quote}
+                  <div
+                    class="flex flex-col justify-between p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-all relative"
+                  >
+                    <div>
+                      <div class="flex items-center justify-between gap-2">
+                        <span
+                          class="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-[#e67a25]/10 text-[0.7rem] font-black text-[#e67a25]"
+                        >
+                          {quote.paint_product_name}
+                        </span>
+                        
+                        {#if quote.is_expired}
+                          <span
+                            class="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[0.65rem] font-bold text-red-600 border border-red-200"
+                          >
+                            Expirado
+                          </span>
+                        {:else}
+                          <span
+                            class="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[0.65rem] font-bold text-green-700 border border-green-200"
+                          >
+                            Vigente
+                          </span>
+                        {/if}
+                      </div>
+
+                      <h4 class="text-base font-black text-[#111111] mt-2">
+                        Precotización #{quote.id}
+                      </h4>
+                      
+                      <p class="text-xs text-gray-500 mt-1">
+                        Área: <span class="font-bold text-[#111111]">{quote.square_meters} m²</span>
+                      </p>
+                      <p class="text-xs text-gray-500 mt-0.5">
+                        Estimado: <span class="text-[#e67a25] font-black text-sm">${quote.estimated_price.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </p>
+                      
+                      <p class="text-[0.75rem] text-gray-400 mt-2 flex items-center gap-1">
+                        <Calendar class="h-3.5 w-3.5" />
+                        {new Date(quote.created_at).toLocaleDateString("es-MX", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100/60">
+                      <!-- Enlace de Descarga Directa PDF -->
+                      <a
+                        href={apiUrl(`/api/v1/quotes/${quote.id}/pdf?token=${encodeURIComponent(getToken() || "")}`)}
+                        target="_blank"
+                        class="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-gray-100 hover:bg-[#172033] hover:text-white text-gray-700 text-xs font-bold transition-all text-center"
+                      >
+                        <Download class="h-3 w-3" />
+                        PDF
+                      </a>
+
+                      <!-- Compartir por correo -->
+                      <button
+                        type="button"
+                        onclick={() => {
+                          if (activeEmailModalId === quote.id) {
+                            activeEmailModalId = null;
+                          } else {
+                            activeEmailModalId = quote.id;
+                            customEmailDest = quote.contact_method === "email" ? quote.contact_value : "";
+                            emailStatusMsg = "";
+                            emailStatusType = "";
+                          }
+                        }}
+                        class="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-[#e67a25]/10 hover:bg-[#e67a25] hover:text-white text-[#e67a25] text-xs font-bold transition-all"
+                      >
+                        <Mail class="h-3 w-3" />
+                        Enviar
+                      </button>
+                    </div>
+
+                    <!-- Modal/Input de Envío de Correo Inline -->
+                    {#if activeEmailModalId === quote.id}
+                      <div class="mt-3 p-3 rounded-lg bg-white border border-gray-200 shadow-inner space-y-2">
+                        <p class="text-[0.7rem] font-bold text-gray-500 uppercase">Enviar PDF a correo:</p>
+                        <div class="flex gap-2">
+                          <input
+                            type="email"
+                            placeholder="correo@ejemplo.com"
+                            bind:value={customEmailDest}
+                            class="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-gray-200 outline-none focus:border-[#e67a25]"
+                          />
+                          <button
+                            type="button"
+                            disabled={sendingEmailId === quote.id}
+                            onclick={() => sendQuoteByEmail(quote.id, quote.contact_method === "email" ? quote.contact_value : "")}
+                            class="px-3 py-1.5 rounded-md bg-[#172033] hover:bg-[#e67a25] text-white text-xs font-black transition-all flex items-center justify-center"
+                          >
+                            {#if sendingEmailId === quote.id}
+                              ...
+                            {:else}
+                              <Send class="h-3 w-3" />
+                            {/if}
+                          </button>
+                        </div>
+                        {#if emailStatusMsg}
+                          <p
+                            class="text-[0.7rem] font-medium mt-1"
+                            class:text-green-600={emailStatusType === "success"}
+                            class:text-red-500={emailStatusType === "error"}
+                          >
+                            {emailStatusMsg}
+                          </p>
+                        {/if}
+                      </div>
+                    {/if}
+                  </div>
+                {/each}
+              </div>
+            {:else}
+              <div
+                class="flex flex-col items-center justify-center py-8 text-center"
+              >
+                <p class="text-sm text-gray-500 font-medium mb-1">
+                  Aún no tienes presupuestos guardados
+                </p>
+                <p class="text-xs text-gray-400 max-w-[280px]">
+                  Utiliza nuestro cotizador automático para calcular y guardar presupuestos de tus proyectos.
+                </p>
+                <a
+                  href="/cotizador"
+                  class="mt-3 inline-flex items-center gap-1.5 text-xs font-black text-[#e67a25] hover:text-[#172033] transition-colors"
+                >
+                  Ir al Cotizador
+                  <ArrowRight class="h-3 w-3" />
+                </a>
               </div>
             {/if}
           </Card.Content>

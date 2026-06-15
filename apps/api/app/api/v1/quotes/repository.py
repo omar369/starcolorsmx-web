@@ -21,6 +21,7 @@ def create_quote_record(
     estimated_price: float,
     payload_json: dict[str, Any],
     result_json: dict[str, Any],
+    user_id: int | None = None,
     user_type: str = "visitor",
     status: str = "created",
 ) -> Quote:
@@ -37,6 +38,7 @@ def create_quote_record(
         estimated_price=estimated_price,
         payload_json=payload_json,
         result_json=result_json,
+        user_id=user_id,
         user_type=user_type,
         status=status,
     )
@@ -88,3 +90,18 @@ def count_recent_quote_requests(
     )
 
     return db.scalar(statement) or 0
+
+
+def get_user_quotes(db: Session, user_id: int) -> list[Quote]:
+    statement = (
+        select(Quote)
+        .where(Quote.user_id == user_id)
+        .order_by(Quote.created_at.desc())
+    )
+    return list(db.scalars(statement).all())
+
+
+def get_quote_by_id(db: Session, quote_id: int) -> Quote | None:
+    statement = select(Quote).where(Quote.id == quote_id)
+    return db.scalar(statement)
+

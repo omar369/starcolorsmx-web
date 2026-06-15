@@ -167,6 +167,7 @@ class QuoteAdjustment(BaseModel):
 
 
 class QuoteResult(BaseModel):
+    id: int | None = None
     customer_name: str
     paint_product: str
     paint_product_name: str
@@ -177,6 +178,9 @@ class QuoteResult(BaseModel):
     subtotal: float
     adjustments: list[QuoteAdjustment]
     estimated_price: float
+    created_at: str | None = None
+    is_expired: bool = False
+
 
 
 def validate_catalog_option(catalog_name: str, value: str) -> str:

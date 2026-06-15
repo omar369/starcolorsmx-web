@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import InvalidTokenError
 from sqlalchemy.orm import Session
@@ -52,6 +52,36 @@ def get_current_user(
         )
 
     return user
+
+
+def get_optional_current_user(
+    request: Request,
+    db: DbSession,
+) -> User | None:
+    token = None
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.lower().startswith("bearer "):
+        parts = auth_header.split()
+        if len(parts) == 2:
+            token = parts[1]
+
+    if not token:
+        token = request.query_params.get("token")
+
+    if not token:
+        return None
+
+    try:
+        payload = decode_access_token(token)
+        user_id = int(payload["sub"])
+        user = get_user_by_id(db, user_id)
+        if user and user.is_active:
+            return user
+    except Exception:
+        return None
+    return None
+
+
 
 
 @router.post("/register", response_model=TokenResponse)

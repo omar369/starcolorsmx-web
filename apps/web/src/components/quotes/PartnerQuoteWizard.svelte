@@ -10,6 +10,7 @@
   import SurfaceStep from "./steps/SurfaceStep.svelte";
   import WorkConditionsStep from "./steps/WorkConditionsStep.svelte";
   import QuoteSuccessStep from "./steps/QuoteSuccessStep.svelte";
+  import { getToken } from "../../lib/auth";
 
   import type {
     QuoteForm,
@@ -146,11 +147,18 @@
 
     try {
       const url = apiUrl(`${API_PREFIX}/quotes/`);
+      
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      const token = getToken();
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(toPayload(form)),
       });
 
@@ -193,39 +201,17 @@
     return isValid;
   }
 
-  async function downloadQuotePdf() {
-    submitError = "";
-
-    try {
-      const url = apiUrl(`${API_PREFIX}/quotes/pdf`);
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(toPayload(form)),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API ${response.status}: ${url}`);
-      }
-
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = "precotizacion-starcolors.pdf";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      window.URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      submitError =
-        error instanceof Error ? error.message : "No se pudo descargar el PDF.";
+  function downloadQuotePdf() {
+    if (!quoteResult || !quoteResult.id) {
+      submitError = "No se ha generado el identificador del presupuesto para la descarga.";
+      return;
     }
+
+    const token = getToken();
+    const queryParams = token ? `?token=${encodeURIComponent(token)}` : "";
+    const url = apiUrl(`${API_PREFIX}/quotes/${quoteResult.id}/pdf${queryParams}`);
+
+    window.open(url, "_blank");
   }
 
   function validateField(field: string) {
