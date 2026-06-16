@@ -5,6 +5,10 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 import anyio
+import base64
+import json
+import urllib.request
+import urllib.error
 
 from app.core.config import settings
 
@@ -140,8 +144,10 @@ def send_quote_email_sync(
     filename: str = "precotizacion-starcolors.pdf"
 ) -> bool:
     """
-    Envía el PDF de cotización por correo usando SMTP.
-    Funciona con cualquier proveedor SMTP estándar (Resend, Gmail, Brevo, etc.)
+    Envía el PDF de cotización por correo.
+    Si el host es smtp.resend.com, utiliza la API REST de Resend sobre HTTPS (puerto 443)
+    para evitar los bloqueos de puertos SMTP (25, 465, 587) típicos en plataformas cloud como Railway.
+    De lo contrario, hace un fallback al envío SMTP estándar con TLS.
     Lanza una excepción con mensaje descriptivo si algo falla.
     """
     if not settings.smtp_host:
@@ -149,6 +155,62 @@ def send_quote_email_sync(
             "SMTP_HOST no está configurado en las variables de entorno del servidor."
         )
 
+    # ── TRABAJO ESPECIAL PARA RESEND (API REST EN PUERTO 443) ──
+    if "resend.com" in settings.smtp_host.lower():
+        api_key = settings.smtp_password
+        if not api_key:
+            raise RuntimeError(
+                "La clave API de Resend (SMTP_PASSWORD) no está configurada."
+            )
+        
+        # Codificar PDF a base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
+        html_content = _build_email_html(customer_name, filename)
+        
+        payload = {
+            "from": f"StarColors MX <{settings.smtp_from}>",
+            "to": [email_to],
+            "subject": "Tu precotización de pintura — StarColors MX",
+            "html": html_content,
+            "attachments": [
+                {
+                    "filename": filename,
+                    "content": pdf_base64
+                }
+            ]
+        }
+        
+        req = urllib.request.Request(
+            "https://api.resend.com/emails",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            method="POST"
+        )
+        
+        try:
+            with urllib.request.urlopen(req, timeout=20) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                logger.info(f"Correo enviado exitosamente vía Resend API (HTTPS). ID: {res_data.get('id')}")
+                return True
+        except urllib.error.HTTPError as e:
+            err_body = e.read().decode("utf-8")
+            try:
+                err_json = json.loads(err_body)
+                err_msg = err_json.get("message", err_body)
+            except Exception:
+                err_msg = err_body
+            msg = f"Error de la API de Resend ({e.code}): {err_msg}"
+            logger.error(msg)
+            raise RuntimeError(msg) from e
+        except Exception as e:
+            msg = f"Error al conectar con la API de Resend: {type(e).__name__}: {e}"
+            logger.error(msg)
+            raise RuntimeError(msg) from e
+
+    # ── FALLBACK SMTP ESTÁNDAR ──
     try:
         msg = MIMEMultipart("alternative")
         msg["From"] = f"StarColors MX <{settings.smtp_from}>"
