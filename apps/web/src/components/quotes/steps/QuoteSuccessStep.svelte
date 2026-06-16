@@ -11,6 +11,10 @@
   export let options: QuoteOptions;
   export let quoteResult: QuoteResult;
   export let onDownloadPdf: () => void;
+  export let onSendEmail: () => void;
+  export let isSendingEmail: boolean;
+  export let emailSuccess: string;
+  export let emailError: string;
 
   function optionName(list: BasicOption[], id: string) {
     return list.find((option) => option.id === id)?.name ?? "No especificado";
@@ -170,16 +174,30 @@
       </button>
       <button
         type="button"
-        disabled
+        on:click={onSendEmail}
+        disabled={isSendingEmail}
         class="
           flex items-center justify-center min-h-[36px]
-          border border-dashed border-[#cbd5e1] rounded-full
-          bg-white text-[#64748b] text-[0.7rem] font-bold
-          px-3 opacity-60 cursor-not-allowed
+          border border-dashed border-[#e67a25] rounded-full
+          bg-white text-[#e67a25] text-[0.7rem] font-bold
+          px-3 cursor-pointer
+          hover:bg-[#fff7ed] transition-colors duration-150
+          disabled:opacity-40 disabled:cursor-not-allowed
         "
       >
-        Aviso de privacidad
+        {isSendingEmail ? "Enviando..." : "Enviar por correo"}
       </button>
     </div>
+    
+    {#if emailSuccess}
+      <p class="m-0 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl text-[0.7rem] font-bold px-3 py-2 text-center mt-2">
+        {emailSuccess}
+      </p>
+    {/if}
+    {#if emailError}
+      <p class="m-0 text-red-700 bg-red-50 border border-red-200 rounded-xl text-[0.7rem] font-bold px-3 py-2 text-center mt-2">
+        {emailError}
+      </p>
+    {/if}
   </div>
 </section>

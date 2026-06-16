@@ -134,6 +134,10 @@
     window.location.href = "/";
   }
 
+  function goToHub() {
+    window.location.href = "/hub";
+  }
+
   async function submitQuote() {
     submitError = "";
     quoteResult = null;
@@ -212,6 +216,60 @@
     const url = apiUrl(`${API_PREFIX}/quotes/${quoteResult.id}/pdf${queryParams}`);
 
     window.open(url, "_blank");
+  }
+
+  let isSendingEmail = false;
+  let emailSuccess = "";
+  let emailError = "";
+
+  async function sendQuotePdfByEmail() {
+    if (!quoteResult || !quoteResult.id) return;
+    
+    isSendingEmail = true;
+    emailSuccess = "";
+    emailError = "";
+
+    // Determine target email
+    let emailDest = form.contact_method === "email" ? form.contact_value : "";
+    
+    if (!emailDest) {
+      const emailPrompt = prompt("Introduce el correo electrónico de destino:");
+      if (!emailPrompt) {
+        isSendingEmail = false;
+        return;
+      }
+      emailDest = emailPrompt.trim();
+    }
+
+    if (!emailDest || !emailDest.includes("@")) {
+      emailError = "Por favor ingresa un correo electrónico válido.";
+      isSendingEmail = false;
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const url = apiUrl(`${API_PREFIX}/quotes/${quoteResult.id}/send-email`);
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ email: emailDest }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || "Error al enviar el correo.");
+      }
+
+      emailSuccess = `¡Correo enviado exitosamente a ${emailDest}!`;
+    } catch (error) {
+      emailError = error instanceof Error ? error.message : "No se pudo enviar el correo.";
+    } finally {
+      isSendingEmail = false;
+    }
   }
 
   function validateField(field: string) {
@@ -388,6 +446,10 @@
             {options}
             {quoteResult}
             onDownloadPdf={downloadQuotePdf}
+            onSendEmail={sendQuotePdfByEmail}
+            {isSendingEmail}
+            {emailSuccess}
+            {emailError}
           />
         {/if}
       {/if}
@@ -428,7 +490,7 @@
         </button>
         <button
           type="button"
-          on:click={goHome}
+          on:click={goToHub}
           disabled={isSubmitting}
           class="
             min-h-[44px] border-0 rounded-full
@@ -438,7 +500,7 @@
             disabled:opacity-40 disabled:cursor-not-allowed
           "
         >
-          Regresar a Inicio
+          Regresar al Portal
         </button>
       {:else}
         <!-- Back button -->
@@ -471,7 +533,7 @@
               disabled:opacity-40 disabled:cursor-not-allowed
             "
           >
-            {isSubmitting ? "Calculando..." : "Enviar"}
+            {isSubmitting ? "Generando..." : "Generar"}
           </button>
         {:else}
           <!-- Next button -->

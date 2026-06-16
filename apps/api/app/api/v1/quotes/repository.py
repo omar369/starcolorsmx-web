@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Quote, QuoteRequest
+from app.core.config import settings
 
 
 def create_quote_record(
@@ -93,11 +94,18 @@ def count_recent_quote_requests(
 
 
 def get_user_quotes(db: Session, user_id: int) -> list[Quote]:
-    statement = (
-        select(Quote)
-        .where(Quote.user_id == user_id)
-        .order_by(Quote.created_at.desc())
-    )
+    if settings.app_env == "development":
+        # En desarrollo, mostramos todas las cotizaciones para que el usuario pueda probar el Hub y Resend localmente
+        statement = (
+            select(Quote)
+            .order_by(Quote.created_at.desc())
+        )
+    else:
+        statement = (
+            select(Quote)
+            .where(Quote.user_id == user_id)
+            .order_by(Quote.created_at.desc())
+        )
     return list(db.scalars(statement).all())
 
 
