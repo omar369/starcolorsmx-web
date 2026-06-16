@@ -142,16 +142,18 @@ def send_quote_email_sync(
     """
     Envía el PDF de cotización por correo usando SMTP.
     Funciona con cualquier proveedor SMTP estándar (Resend, Gmail, Brevo, etc.)
+    Lanza una excepción con mensaje descriptivo si algo falla.
     """
     if not settings.smtp_host:
-        logger.warning("SMTP_HOST no configurado. No se enviará el correo de la cotización.")
-        return False
+        raise RuntimeError(
+            "SMTP_HOST no está configurado en las variables de entorno del servidor."
+        )
 
     try:
         msg = MIMEMultipart("alternative")
         msg["From"] = f"StarColors MX <{settings.smtp_from}>"
         msg["To"] = email_to
-        msg["Subject"] = f"Tu precotización de pintura — StarColors MX"
+        msg["Subject"] = "Tu precotización de pintura — StarColors MX"
         msg["Reply-To"] = settings.smtp_from
 
         # Texto plano (fallback para clientes que no soportan HTML)
@@ -166,7 +168,7 @@ def send_quote_email_sync(
         msg.attach(MIMEText(plain_text, "plain", "utf-8"))
         msg.attach(MIMEText(_build_email_html(customer_name, filename), "html", "utf-8"))
 
-        # Adjunto PDF — cambiar a MIMEMultipart("mixed") para adjuntos
+        # Adjunto PDF
         full_msg = MIMEMultipart("mixed")
         full_msg["From"] = msg["From"]
         full_msg["To"] = msg["To"]
@@ -195,15 +197,26 @@ def send_quote_email_sync(
         logger.info(f"Correo de cotización enviado exitosamente a {email_to}")
         return True
 
-    except smtplib.SMTPAuthenticationError:
-        logger.error("Error de autenticación SMTP — revisa SMTP_USERNAME y SMTP_PASSWORD en Railway.")
-        return False
-    except smtplib.SMTPConnectError:
-        logger.error(f"No se pudo conectar al servidor SMTP {settings.smtp_host}:{settings.smtp_port}")
-        return False
+    except smtplib.SMTPAuthenticationError as e:
+        msg = f"Error de autenticación SMTP — verifica SMTP_USERNAME y SMTP_PASSWORD en Railway. Detalle: {e}"
+        logger.error(msg)
+        raise RuntimeError(msg) from e
+    except smtplib.SMTPConnectError as e:
+        msg = f"No se pudo conectar al servidor SMTP {settings.smtp_host}:{settings.smtp_port}. Detalle: {e}"
+        logger.error(msg)
+        raise RuntimeError(msg) from e
+    except smtplib.SMTPRecipientsRefused as e:
+        msg = f"El destinatario fue rechazado por el servidor: {email_to}. Detalle: {e}"
+        logger.error(msg)
+        raise RuntimeError(msg) from e
+    except smtplib.SMTPSenderRefused as e:
+        msg = f"El remitente fue rechazado: {settings.smtp_from}. Verifica que el dominio esté verificado en Resend. Detalle: {e}"
+        logger.error(msg)
+        raise RuntimeError(msg) from e
     except Exception as e:
-        logger.error(f"Error inesperado al enviar correo: {str(e)}")
-        return False
+        msg = f"Error inesperado al enviar correo SMTP: {type(e).__name__}: {e}"
+        logger.error(msg)
+        raise RuntimeError(msg) from e
 
 
 async def send_quote_email(
@@ -215,6 +228,7 @@ async def send_quote_email(
     """
     Wrapper async — ejecuta el envío SMTP en un thread separado
     para no bloquear el event loop de FastAPI.
+    Deja que las excepciones de send_quote_email_sync se propaguen.
     """
     return await anyio.to_thread.run_sync(
         lambda: send_quote_email_sync(email_to, customer_name, pdf_bytes, filename)

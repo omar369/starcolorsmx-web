@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+import logging
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel
@@ -18,6 +19,7 @@ from app.api.v1.quotes.repository import (
 from app.api.v1.quotes.mail import send_quote_email
 
 router = APIRouter(prefix="/quotes", tags=["Quotes"])
+logger = logging.getLogger(__name__)
 
 DbSession = Annotated[Session, Depends(get_db)]
 OptionalUser = Annotated[User | None, Depends(get_optional_current_user)]
@@ -184,18 +186,25 @@ async def email_quote_pdf(
         )
 
     pdf = build_quote_pdf(quote_payload, result)
-    
-    sent = await send_quote_email(
-        email_to=email_to,
-        customer_name=quote_record.customer_name,
-        pdf_bytes=pdf,
-        filename=f"precotizacion-{quote_id}.pdf"
-    )
+
+    try:
+        sent = await send_quote_email(
+            email_to=email_to,
+            customer_name=quote_record.customer_name,
+            pdf_bytes=pdf,
+            filename=f"precotizacion-{quote_id}.pdf"
+        )
+    except RuntimeError as e:
+        logger.error(f"SMTP error al enviar quote {quote_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )
 
     if not sent:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="No se pudo enviar el correo. Por favor verifique la configuración SMTP del servidor.",
+            detail="No se pudo enviar el correo. Verifica la configuración SMTP en Railway.",
         )
 
     return {"status": "success", "message": f"Precotización enviada exitosamente a {email_to}"}
