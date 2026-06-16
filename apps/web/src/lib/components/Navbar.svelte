@@ -16,7 +16,11 @@
   let menuOpen = $state(false);
 
   // Read stored user from session on mount
-  let user = $state<{ name: string; email?: string; avatarUrl?: string } | null>(null);
+  let user = $state<{
+    name: string;
+    email?: string;
+    avatarUrl?: string;
+  } | null>(null);
 
   onMount(() => {
     const storedUser = getStoredUser();
@@ -94,7 +98,7 @@
             <!-- Added !text-white to ensure shadcn defaults don't override the color -->
             <NavigationMenu.Link
               href={link.href}
-              class="rounded-full px-2 py-2 text-[0.95rem] font-normal tracking-wide !text-white no-underline transition-colors hover:bg-white/20 hover:!text-white"
+              class="rounded-full px-2 py-2 text-[0.95rem] font-normal tracking-wide text-white! no-underline transition-colors hover:bg-white/20 hover:text-white!"
             >
               {link.label}
             </NavigationMenu.Link>
@@ -133,7 +137,7 @@
           href="/hub"
           variant="outline"
           size="sm"
-          class="rounded-full mt-4 border-white/70 bg-white/10 px-4 text-[0.8rem] font-black uppercase tracking-wider !text-white backdrop-blur-sm hover:bg-white hover:!text-[#e67a25] transition-all"
+          class="rounded-full mt-4 border-white/70 bg-white/10 px-4 text-[0.8rem] font-black uppercase tracking-wider text-white! backdrop-blur-sm hover:bg-white hover:!text-[#e67a25] transition-all"
         >
           <User class="mr-1.5 h-3.5 w-3.5" />
           Portal clientes
@@ -173,12 +177,22 @@
       {#if user}
         <div class="mt-2 flex flex-col gap-2 border-t border-[#e1cdb8]/60 pt-3">
           <div class="flex items-center gap-3 px-3 py-1.5">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e67a25] text-white font-black text-xs uppercase shadow-sm">
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e67a25] text-white font-black text-xs uppercase shadow-sm"
+            >
               {getInitials(user.name)}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-black text-[#172033] truncate leading-none mb-1">{user.name}</p>
-              <p class="text-[0.75rem] text-gray-500 font-bold truncate leading-none">{user.email ?? ''}</p>
+              <p
+                class="text-sm font-black text-[#172033] truncate leading-none mb-1"
+              >
+                {user.name}
+              </p>
+              <p
+                class="text-[0.75rem] text-gray-500 font-bold truncate leading-none"
+              >
+                {user.email ?? ""}
+              </p>
             </div>
           </div>
           <a

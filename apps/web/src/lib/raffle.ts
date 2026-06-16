@@ -91,8 +91,36 @@ async function raffleRequest<T>(
   return data as T;
 }
 
-export function getRaffleStatus() {
-  return raffleRequest<RaffleStatus>("/raffle/status");
+export function mapBranchName(name: string): string {
+  const lower = name.toLowerCase();
+  if (lower.includes("centro")) return "Burócrata";
+  if (lower.includes("norte")) return "El Pueblito";
+  if (lower.includes("sur")) return "Constituyentes";
+  if (lower.includes("burocrata")) return "Burócrata";
+  if (lower.includes("pueblito")) return "El Pueblito";
+  if (lower.includes("constituyentes")) return "Constituyentes";
+  return name;
+}
+
+export function mapBranchImage(name: string, currentImg: string | null): string | null {
+  if (currentImg && currentImg.startsWith("/images/")) return currentImg;
+  const lower = name.toLowerCase();
+  if (lower.includes("centro") || lower.includes("burocrata")) return "/images/contacto/burocrata.jpg";
+  if (lower.includes("norte") || lower.includes("pueblito")) return "/images/contacto/pueblito.jpg";
+  if (lower.includes("sur") || lower.includes("constituyentes")) return "/images/contacto/constituyentes.jpg";
+  return currentImg;
+}
+
+export async function getRaffleStatus() {
+  const data = await raffleRequest<RaffleStatus>("/raffle/status");
+  if (data && Array.isArray(data.branches)) {
+    data.branches = data.branches.map((b) => ({
+      ...b,
+      name: mapBranchName(b.name),
+      image_url: mapBranchImage(b.name, b.image_url),
+    }));
+  }
+  return data;
 }
 
 export function getBranchNumbers(branchId: number) {

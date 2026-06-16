@@ -125,8 +125,7 @@
     min-height: 440px;
     border-radius: 2.5rem;
     background: #006b3f;
-    box-shadow: 0 24px 50px rgba(0, 107, 63, 0.25);
-
+    /* box-shadow: 0 24px 50px rgba(0, 107, 63, 0.25); */
     opacity: 0;
     animation: fade-in 0.8s ease-out forwards;
   }
@@ -143,7 +142,6 @@
     background-color: #f3eadb; /* Mezcla con el nuevo fondo de index.astro */
     z-index: 10;
     transform: translateY(-50%);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
   }
 
   .banner-card::before {
@@ -225,7 +223,7 @@
     border-radius: 999px !important;
     height: auto !important;
     text-transform: uppercase;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    /* box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important; */
     transition: transform 0.2s ease !important;
   }
 
@@ -258,7 +256,7 @@
     border: none;
     box-shadow: none;
     /* Sombras 3D aplicadas al recorte de la silueta del PNG transparente */
-    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.35));
+    /* filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.35)); */
     overflow: visible;
     opacity: 0;
   }
