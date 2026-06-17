@@ -94,22 +94,29 @@ def count_recent_quote_requests(
 
 
 def get_user_quotes(db: Session, user_id: int) -> list[Quote]:
-    if settings.app_env == "development":
-        # En desarrollo, mostramos todas las cotizaciones para que el usuario pueda probar el Hub y Resend localmente
-        statement = (
-            select(Quote)
-            .order_by(Quote.created_at.desc())
-        )
-    else:
-        statement = (
-            select(Quote)
-            .where(Quote.user_id == user_id)
-            .order_by(Quote.created_at.desc())
-        )
+    statement = (
+        select(Quote)
+        .where(Quote.user_id == user_id)
+        .order_by(Quote.created_at.desc())
+    )
     return list(db.scalars(statement).all())
 
 
 def get_quote_by_id(db: Session, quote_id: int) -> Quote | None:
     statement = select(Quote).where(Quote.id == quote_id)
     return db.scalar(statement)
+
+
+def count_user_quotes(db: Session, user_id: int) -> int:
+    statement = (
+        select(func.count())
+        .select_from(Quote)
+        .where(Quote.user_id == user_id)
+    )
+    return db.scalar(statement) or 0
+
+
+def delete_quote_record(db: Session, quote: Quote) -> None:
+    db.delete(quote)
+    db.commit()
 

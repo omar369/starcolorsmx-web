@@ -32,7 +32,9 @@ class SendEmailPayload(BaseModel):
 
 
 def is_quote_expired(created_at: datetime) -> bool:
-    now = datetime.now(created_at.tzinfo) if created_at.tzinfo else datetime.now(UTC)
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=UTC)
+    now = datetime.now(UTC)
     return now > created_at + timedelta(days=30)
 
 
@@ -54,6 +56,12 @@ def create_quote(
     user_id = None
     user_type = "visitor"
     if current_user:
+        from app.api.v1.quotes.repository import count_user_quotes
+        if count_user_quotes(db, current_user.id) >= 6:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Límite de presupuestos alcanzado (máximo 6). Por favor, elimina algún presupuesto anterior antes de crear uno nuevo."
+            )
         user_id = current_user.id
         user_type = "user"
 
@@ -100,6 +108,31 @@ def list_my_quotes(
             # Skip invalid/corrupt records if schema changed
             continue
     return results
+
+
+@router.delete("/{quote_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_quote(
+    quote_id: int,
+    db: DbSession,
+    current_user: RequiredUser,
+):
+    quote_record = get_quote_by_id(db, quote_id)
+    if not quote_record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Presupuesto no encontrado",
+        )
+
+    # Security check: verify ownership
+    if quote_record.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permiso para eliminar este presupuesto",
+        )
+
+    from app.api.v1.quotes.repository import delete_quote_record
+    delete_quote_record(db, quote_record)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/{quote_id}/pdf")

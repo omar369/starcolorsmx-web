@@ -11,6 +11,7 @@
   import WorkConditionsStep from "./steps/WorkConditionsStep.svelte";
   import QuoteSuccessStep from "./steps/QuoteSuccessStep.svelte";
   import { getToken } from "../../lib/auth";
+  import { FileText } from "@lucide/svelte";
 
   import type {
     QuoteForm,
@@ -53,6 +54,9 @@
   let quoteResult: QuoteResult | null = null;
   let errors: Record<string, string> = {};
 
+  let userQuotesCount = 0;
+  let isLimitReached = false;
+
   let form: QuoteForm = {
     property_type: "",
     work_location: "",
@@ -84,7 +88,31 @@
 
   onMount(async () => {
     await loadOptions();
+    await checkUserQuotesLimit();
   });
+
+  async function checkUserQuotesLimit() {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const url = apiUrl(`/api/v1/quotes/my`);
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const quotesList = await response.json();
+        userQuotesCount = quotesList.length;
+        if (userQuotesCount >= 6) {
+          isLimitReached = true;
+        }
+      }
+    } catch (err) {
+      console.error("Error al consultar límite de cotizaciones:", err);
+    }
+  }
 
   async function loadOptions() {
     isLoadingOptions = true;
@@ -167,7 +195,8 @@
       });
 
       if (!response.ok) {
-        throw new Error(`API ${response.status}: ${url}`);
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.detail || `Error del servidor (${response.status})`);
       }
 
       quoteResult = await response.json();
@@ -378,32 +407,74 @@
         <p class="m-0 text-[#536173] text-[0.76rem] font-black leading-none">
           Cotizador automático
         </p>
-        <p class="m-0 text-[#536173] text-[0.76rem] font-black leading-none whitespace-nowrap">
-          Paso {currentStep + 1} de {steps.length}
-        </p>
+        {#if !isLimitReached}
+          <p class="m-0 text-[#536173] text-[0.76rem] font-black leading-none whitespace-nowrap">
+            Paso {currentStep + 1} de {steps.length}
+          </p>
+        {/if}
       </div>
 
-      <!-- Progress dots -->
-      <div class="flex gap-1.5" aria-label="Progreso del formulario">
-        {#each steps as step, index}
-          <span
-            title={step}
-            class="
-              h-2 rounded-full transition-all duration-200 ease-out
-              {index === currentStep
-                ? 'w-6 bg-[#f5b700]'
-                : index < currentStep
-                  ? 'w-2 bg-[#172033]'
-                  : 'w-2 bg-[#d8dee8]'}
-            "
-          ></span>
-        {/each}
-      </div>
+      {#if !isLimitReached}
+        <!-- Progress dots -->
+        <div class="flex gap-1.5" aria-label="Progreso del formulario">
+          {#each steps as step, index}
+            <span
+              title={step}
+              class="
+                h-2 rounded-full transition-all duration-200 ease-out
+                {index === currentStep
+                  ? 'w-6 bg-[#f5b700]'
+                  : index < currentStep
+                    ? 'w-2 bg-[#172033]'
+                    : 'w-2 bg-[#d8dee8]'}
+              "
+            ></span>
+          {/each}
+        </div>
+      {/if}
     </header>
 
     <!-- ── Step content ── -->
     <div class="block min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-4 sm:px-5">
-      {#if isLoadingOptions}
+      {#if isLimitReached}
+        <div class="flex flex-col items-center justify-center py-10 text-center max-w-md mx-auto min-h-full animate-in fade-in duration-300">
+          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e67a25]/10 text-[#e67a25] mb-6 shadow-sm">
+            <FileText class="h-8 w-8" />
+          </div>
+          <h3 class="text-xl font-black text-[#111111] mb-3 leading-tight">
+            Límite de presupuestos alcanzado
+          </h3>
+          <p class="text-sm text-gray-500 mb-8 leading-relaxed">
+            Has alcanzado el límite máximo de <span class="font-bold text-[#e67a25]">6 presupuestos</span> guardados en tu cuenta. Para mantener tu portal rápido y organizado, debes eliminar al menos un presupuesto antiguo antes de poder generar uno nuevo.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3 w-full justify-center">
+            <button
+              type="button"
+              on:click={goToHub}
+              class="
+                min-h-[44px] border-0 rounded-full
+                bg-[#172033] hover:bg-[#e67a25] text-white
+                text-sm font-bold px-6 cursor-pointer
+                active:scale-[0.97] transition-all duration-150
+              "
+            >
+              Ir a mi Portal de Cliente
+            </button>
+            <button
+              type="button"
+              on:click={goHome}
+              class="
+                min-h-[44px] border-0 rounded-full
+                bg-gray-100 hover:bg-gray-200 text-gray-700
+                text-sm font-bold px-6 cursor-pointer
+                active:scale-[0.97] transition-all duration-150
+              "
+            >
+              Volver al inicio
+            </button>
+          </div>
+        </div>
+      {:else if isLoadingOptions}
         <div class="grid gap-3 place-content-center min-h-full rounded-2xl bg-[#f8fafc] text-[#475569] text-sm text-center p-4">
           Cargando opciones del cotizador...
         </div>
@@ -471,60 +542,28 @@
     {/if}
 
     <!-- ── Footer actions ── -->
-    <footer class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-2.5 px-4 pt-2.5 pb-3.5 border-t border-[#e2e8f0] bg-white sm:px-5">
-      {#if currentStep === steps.length - 1}
-        <!-- Last step buttons -->
-        <button
-          type="button"
-          on:click={startNewQuote}
-          disabled={isSubmitting}
-          class="
-            min-h-[44px] border-0 rounded-full
-            bg-[#f1f5f9] text-[#172033]
-            text-[0.9rem] font-bold px-4 cursor-pointer
-            hover:bg-[#e2e8f0] transition-colors duration-150
-            disabled:opacity-40 disabled:cursor-not-allowed
-          "
-        >
-          Crear nuevo
-        </button>
-        <button
-          type="button"
-          on:click={goToHub}
-          disabled={isSubmitting}
-          class="
-            min-h-[44px] border-0 rounded-full
-            bg-[#f5b700] text-[#172033]
-            text-[0.9rem] font-bold px-4 cursor-pointer
-            hover:bg-[#e6ac00] active:scale-[0.97] transition-all duration-150
-            disabled:opacity-40 disabled:cursor-not-allowed
-          "
-        >
-          Regresar al Portal
-        </button>
-      {:else}
-        <!-- Back button -->
-        <button
-          type="button"
-          on:click={goBack}
-          disabled={currentStep === 0 || isSubmitting}
-          class="
-            min-h-[44px] border-0 rounded-full
-            bg-[#f1f5f9] text-[#172033]
-            text-[0.9rem] font-bold px-4 cursor-pointer
-            hover:bg-[#e2e8f0] transition-colors duration-150
-            disabled:opacity-40 disabled:cursor-not-allowed
-          "
-        >
-          Atrás
-        </button>
-
-        {#if currentStep === steps.length - 2}
-          <!-- Submit button -->
+    {#if !isLimitReached}
+      <footer class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-2.5 px-4 pt-2.5 pb-3.5 border-t border-[#e2e8f0] bg-white sm:px-5">
+        {#if currentStep === steps.length - 1}
+          <!-- Last step buttons -->
           <button
             type="button"
-            on:click={submitQuote}
-            disabled={!options || isSubmitting}
+            on:click={startNewQuote}
+            disabled={isSubmitting}
+            class="
+              min-h-[44px] border-0 rounded-full
+              bg-[#f1f5f9] text-[#172033]
+              text-[0.9rem] font-bold px-4 cursor-pointer
+              hover:bg-[#e2e8f0] transition-colors duration-150
+              disabled:opacity-40 disabled:cursor-not-allowed
+            "
+          >
+            Crear nuevo
+          </button>
+          <button
+            type="button"
+            on:click={goToHub}
+            disabled={isSubmitting}
             class="
               min-h-[44px] border-0 rounded-full
               bg-[#f5b700] text-[#172033]
@@ -533,26 +572,60 @@
               disabled:opacity-40 disabled:cursor-not-allowed
             "
           >
-            {isSubmitting ? "Generando..." : "Generar"}
+            Regresar al Portal
           </button>
         {:else}
-          <!-- Next button -->
+          <!-- Back button -->
           <button
             type="button"
-            on:click={goNext}
-            disabled={!options || isSubmitting}
+            on:click={goBack}
+            disabled={currentStep === 0 || isSubmitting}
             class="
               min-h-[44px] border-0 rounded-full
-              bg-[#f5b700] text-[#172033]
+              bg-[#f1f5f9] text-[#172033]
               text-[0.9rem] font-bold px-4 cursor-pointer
-              hover:bg-[#e6ac00] active:scale-[0.97] transition-all duration-150
+              hover:bg-[#e2e8f0] transition-colors duration-150
               disabled:opacity-40 disabled:cursor-not-allowed
             "
           >
-            Continuar
+            Atrás
           </button>
+
+          {#if currentStep === steps.length - 2}
+            <!-- Submit button -->
+            <button
+              type="button"
+              on:click={submitQuote}
+              disabled={!options || isSubmitting}
+              class="
+                min-h-[44px] border-0 rounded-full
+                bg-[#f5b700] text-[#172033]
+                text-[0.9rem] font-bold px-4 cursor-pointer
+                hover:bg-[#e6ac00] active:scale-[0.97] transition-all duration-150
+                disabled:opacity-40 disabled:cursor-not-allowed
+              "
+            >
+              {isSubmitting ? "Generando..." : "Generar"}
+            </button>
+          {:else}
+            <!-- Next button -->
+            <button
+              type="button"
+              on:click={goNext}
+              disabled={!options || isSubmitting}
+              class="
+                min-h-[44px] border-0 rounded-full
+                bg-[#f5b700] text-[#172033]
+                text-[0.9rem] font-bold px-4 cursor-pointer
+                hover:bg-[#e6ac00] active:scale-[0.97] transition-all duration-150
+                disabled:opacity-40 disabled:cursor-not-allowed
+              "
+            >
+              Continuar
+            </button>
+          {/if}
         {/if}
-      {/if}
-    </footer>
+      </footer>
+    {/if}
   </div>
 </section>

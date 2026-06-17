@@ -28,6 +28,7 @@
     Mail,
     Calendar,
     Send,
+    Trash,
   } from "@lucide/svelte";
   import { getToken } from "../../lib/auth";
 
@@ -45,6 +46,12 @@
   let emailStatusType = $state<"success" | "error" | "">("");
   let customEmailDest = $state<string>("");
   let activeEmailModalId = $state<number | null>(null);
+
+  // Estados para eliminación de presupuestos
+  let showDeleteDialog = $state(false);
+  let quoteToDelete = $state<any | null>(null);
+  let deletingQuoteId = $state<number | null>(null);
+  let deleteError = $state("");
 
   onMount(async () => {
     const storedUser = getStoredUser();
@@ -138,6 +145,40 @@
       emailStatusType = "error";
     } finally {
       sendingEmailId = null;
+    }
+  }
+
+  async function executeDeleteQuote(quoteId: number) {
+    deletingQuoteId = quoteId;
+    deleteError = "";
+
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error("No se encontró una sesión activa.");
+      }
+
+      const url = apiUrl(`/api/v1/quotes/${quoteId}`);
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.detail || "No se pudo eliminar el presupuesto.");
+      }
+
+      // Eliminar de forma reactiva de la lista local
+      quotes = quotes.filter((q) => q.id !== quoteId);
+      showDeleteDialog = false;
+      quoteToDelete = null;
+    } catch (err: any) {
+      deleteError = err.message || "Error al conectar con el servidor.";
+    } finally {
+      deletingQuoteId = null;
     }
   }
 
@@ -510,13 +551,18 @@
         <Card.Root
           class="border-0 shadow-lg rounded-2xl bg-white overflow-hidden mt-8"
         >
-          <Card.Header class="pb-3">
+          <Card.Header class="pb-3 flex flex-row items-center justify-between">
             <Card.Title
               class="text-xl font-black text-[#111111] flex items-center gap-2"
             >
               <FileText class="h-5 w-5 text-[#e67a25]" />
               Mis Presupuestos Guardados
             </Card.Title>
+            <span
+              class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-wider {quotes.length >= 6 ? 'bg-red-50 text-red-600 border border-red-200 animate-pulse' : 'bg-gray-100 text-gray-600'}"
+            >
+              {quotes.length} / 6
+            </span>
           </Card.Header>
 
           <Card.Content>
@@ -583,7 +629,7 @@
                       <a
                         href={apiUrl(`/api/v1/quotes/${quote.id}/pdf?token=${encodeURIComponent(getToken() || "")}`)}
                         target="_blank"
-                        class="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-gray-100 hover:bg-[#172033] hover:text-white text-gray-700 text-xs font-bold transition-all text-center"
+                        class="flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg bg-gray-100 hover:bg-[#172033] hover:text-white text-gray-700 text-xs font-bold transition-all text-center"
                       >
                         <Download class="h-3 w-3" />
                         PDF
@@ -602,10 +648,24 @@
                             emailStatusType = "";
                           }
                         }}
-                        class="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-[#e67a25]/10 hover:bg-[#e67a25] hover:text-white text-[#e67a25] text-xs font-bold transition-all"
+                        class="flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg bg-[#e67a25]/10 hover:bg-[#e67a25] hover:text-white text-[#e67a25] text-xs font-bold transition-all"
                       >
                         <Mail class="h-3 w-3" />
                         Enviar
+                      </button>
+
+                      <!-- Eliminar presupuesto -->
+                      <button
+                        type="button"
+                        onclick={() => {
+                          quoteToDelete = quote;
+                          showDeleteDialog = true;
+                          deleteError = "";
+                        }}
+                        class="flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-600 text-xs font-bold transition-all"
+                      >
+                        <Trash class="h-3 w-3" />
+                        Eliminar
                       </button>
                     </div>
 
@@ -764,6 +824,60 @@
             </div>
           </Card.Content>
         </Card.Root>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
+{#if showDeleteDialog && quoteToDelete}
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="bg-white max-w-md w-full border border-gray-200 rounded-2xl shadow-2xl overflow-hidden p-6 animate-in zoom-in-95 duration-200"
+    >
+      <h3 class="text-lg font-black text-gray-900 mb-2">
+        ¿Estás seguro de eliminar este presupuesto?
+      </h3>
+      <p class="text-sm text-gray-500 mb-6 leading-relaxed">
+        Esta acción no se puede deshacer. Se eliminará permanentemente la precotización <span class="font-bold text-gray-800">#{quoteToDelete.id}</span> ({quoteToDelete.paint_product_name}, {quoteToDelete.square_meters} m²).
+      </p>
+
+      {#if deleteError}
+        <p class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5 mb-4" role="alert">
+          {deleteError}
+        </p>
+      {/if}
+
+      <div class="flex items-center justify-end gap-3">
+        <button
+          type="button"
+          disabled={deletingQuoteId === quoteToDelete.id}
+          onclick={() => {
+            showDeleteDialog = false;
+            quoteToDelete = null;
+            deleteError = "";
+          }}
+          class="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-bold transition-all disabled:opacity-50"
+        >
+          No, cancelar
+        </button>
+        <button
+          type="button"
+          disabled={deletingQuoteId === quoteToDelete.id}
+          onclick={() => executeDeleteQuote(quoteToDelete.id)}
+          class="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-black transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+        >
+          {#if deletingQuoteId === quoteToDelete.id}
+            <div class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
+            Eliminando...
+          {:else}
+            Sí, eliminar
+          {/if}
+        </button>
       </div>
     </div>
   </div>
