@@ -5,9 +5,7 @@ from app.api.v1.raffle.models import (
     Raffle,
     RaffleBranch,
     RaffleNumber,
-    RaffleTicketCode,
 )
-from app.api.v1.raffle.service import hash_code, normalize_code
 
 
 def seed_raffle(db: Session) -> None:
@@ -17,15 +15,15 @@ def seed_raffle(db: Session) -> None:
 
     if existing_raffle:
         raffle = existing_raffle
-        if raffle.prize_title != 'Gana SMART TV':
-            raffle.prize_title = 'Gana SMART TV'
+        if raffle.prize_title != "Gana SMART TV":
+            raffle.prize_title = "Gana SMART TV"
         if raffle.max_batches_per_user_24h != 10:
             raffle.max_batches_per_user_24h = 10
     else:
         raffle = Raffle(
             title="Sorteo de temporada",
             slug="sorteo-temporada-2026",
-            prize_title='Gana SMART TV',
+            prize_title="Gana SMART TV",
             status="active",
             total_numbers=495,
             numbers_per_branch=165,
@@ -67,7 +65,7 @@ def seed_raffle(db: Session) -> None:
         branch = db.execute(
             select(RaffleBranch).where(
                 RaffleBranch.raffle_id == raffle.id,
-                RaffleBranch.sort_order == data["sort_order"]
+                RaffleBranch.sort_order == data["sort_order"],
             )
         ).scalar_one_or_none()
 
@@ -94,8 +92,7 @@ def seed_raffle(db: Session) -> None:
         for number in range(branch.number_start, branch.number_end + 1):
             existing_number = db.execute(
                 select(RaffleNumber).where(
-                    RaffleNumber.raffle_id == raffle.id,
-                    RaffleNumber.number == number
+                    RaffleNumber.raffle_id == raffle.id, RaffleNumber.number == number
                 )
             ).scalar_one_or_none()
 
@@ -110,4 +107,3 @@ def seed_raffle(db: Session) -> None:
                 )
 
     db.commit()
-

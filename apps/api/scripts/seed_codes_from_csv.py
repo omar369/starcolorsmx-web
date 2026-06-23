@@ -1,10 +1,13 @@
-import sys
-import os
 import csv
+import os
+import sys
+
 from sqlalchemy import select
-from app.db.session import SessionLocal
+
 from app.api.v1.raffle.models import Raffle, RaffleTicketCode
 from app.api.v1.raffle.service import hash_code, normalize_code
+from app.db.session import SessionLocal
+
 
 def seed_from_csv(csv_path: str) -> None:
     if not os.path.exists(csv_path):
@@ -24,17 +27,17 @@ def seed_from_csv(csv_path: str) -> None:
 
         # 2. Leer códigos
         codes = []
-        with open(csv_path, mode="r", encoding="utf-8") as f:
+        with open(csv_path, encoding="utf-8") as f:
             reader = csv.reader(f)
             header = next(reader, None)
-            
+
             # Validar cabecera opcional 'code'
             if header and len(header) > 0 and header[0].lower() == "code":
                 pass
             elif header:
                 if header[0].strip():
                     codes.append(header[0].strip())
-            
+
             for row in reader:
                 if row and row[0].strip():
                     codes.append(row[0].strip())
@@ -57,7 +60,9 @@ def seed_from_csv(csv_path: str) -> None:
                 continue
 
             # Verificar si ya existe en la BD
-            stmt_exists = select(RaffleTicketCode).where(RaffleTicketCode.code_hash == code_h)
+            stmt_exists = select(RaffleTicketCode).where(
+                RaffleTicketCode.code_hash == code_h
+            )
             exists = db.execute(stmt_exists).scalar_one_or_none()
 
             if exists:
@@ -69,7 +74,7 @@ def seed_from_csv(csv_path: str) -> None:
                 raffle_id=raffle.id,
                 code_hash=code_h,
                 code_last4=last4,
-                status="available"
+                status="available",
             )
             db.add(ticket)
             added_count += 1
@@ -78,7 +83,7 @@ def seed_from_csv(csv_path: str) -> None:
                 db.commit()
 
         db.commit()
-        print(f"Resultado de la importación:")
+        print("Resultado de la importación:")
         print(f"  - Leídos: {total_codes}")
         print(f"  - Nuevos insertados: {added_count}")
         print(f"  - Ya existentes/omitidos: {skipped_count}")
@@ -89,17 +94,20 @@ def seed_from_csv(csv_path: str) -> None:
     finally:
         db.close()
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Uso: python -m scripts.seed_codes_from_csv <ruta.csv>")
         sys.exit(1)
-        
+
     app_env = os.getenv("APP_ENV", "development").lower()
     if app_env == "production":
         print("¡ATENCIÓN! Detectado entorno de PRODUCCIÓN.")
-        confirm = input("¿Confirmas que deseas importar códigos reales? (escribe 'si' para continuar): ")
+        confirm = input(
+            "¿Confirmas que deseas importar códigos reales? (escribe 'si' para continuar): "
+        )
         if confirm.lower() != "si":
             print("Importación cancelada.")
             sys.exit(0)
-            
+
     seed_from_csv(sys.argv[1])

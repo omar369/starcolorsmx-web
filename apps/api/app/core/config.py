@@ -4,12 +4,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "Servicios Pinturas Starcolors"
     app_env: str = "development"
-    debug: bool = False 
+    debug: bool = False
     api_version: str = "0.1.0"
     database_url: str = ""
     jwt_secret_key: str = "dev_change_me_secret_key_32_chars_minimum"
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60 * 6 
+    access_token_expire_minutes: int = 60 * 6
     backend_cors_origins: list[str] = [
         "http://localhost:4321",
         "http://127.0.0.1:4321",

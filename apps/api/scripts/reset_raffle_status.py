@@ -1,16 +1,19 @@
-import sys
 import os
-from sqlalchemy import select, delete, update
+import sys
+
+from sqlalchemy import delete, select, update
 from sqlalchemy.engine import CursorResult
-from app.db.session import SessionLocal
+
 from app.api.v1.raffle.models import (
     Raffle,
     RaffleEntry,
+    RaffleNumber,
     RaffleTicketBatch,
     RaffleTicketBatchItem,
     RaffleTicketCode,
-    RaffleNumber
 )
+from app.db.session import SessionLocal
+
 
 def reset_raffle() -> None:
     db = SessionLocal()
@@ -32,33 +35,43 @@ def reset_raffle() -> None:
         # 3. Borrar items de lotes (RaffleTicketBatchItems)
         batch_items_stmt = delete(RaffleTicketBatchItem)
         batch_items_result: CursorResult = db.execute(batch_items_stmt)
-        print(f"Eliminados {batch_items_result.rowcount} registros de validación individuales (RaffleTicketBatchItems).")
+        print(
+            f"Eliminados {batch_items_result.rowcount} registros de validación individuales (RaffleTicketBatchItems)."
+        )
 
         # 4. Borrar lotes de tickets (RaffleTicketBatches)
-        batches_stmt = delete(RaffleTicketBatch).where(RaffleTicketBatch.raffle_id == raffle.id)
+        batches_stmt = delete(RaffleTicketBatch).where(
+            RaffleTicketBatch.raffle_id == raffle.id
+        )
         batches_result: CursorResult = db.execute(batches_stmt)
-        print(f"Eliminados {batches_result.rowcount} lotes de validación (RaffleTicketBatches).")
+        print(
+            f"Eliminados {batches_result.rowcount} lotes de validación (RaffleTicketBatches)."
+        )
 
         # 5. Borrar todos los códigos de boletos (RaffleTicketCode)
-        codes_stmt = delete(RaffleTicketCode).where(RaffleTicketCode.raffle_id == raffle.id)
+        codes_stmt = delete(RaffleTicketCode).where(
+            RaffleTicketCode.raffle_id == raffle.id
+        )
         codes_result: CursorResult = db.execute(codes_stmt)
-        print(f"Eliminados {codes_result.rowcount} códigos de boletos (RaffleTicketCode).")
+        print(
+            f"Eliminados {codes_result.rowcount} códigos de boletos (RaffleTicketCode)."
+        )
 
         # 6. Resetear números del tablero (RaffleNumber)
         numbers_stmt = (
             update(RaffleNumber)
             .where(RaffleNumber.raffle_id == raffle.id)
-            .values(
-                status="available",
-                taken_by_user_id=None,
-                taken_at=None
-            )
+            .values(status="available", taken_by_user_id=None, taken_at=None)
         )
         numbers_result: CursorResult = db.execute(numbers_stmt)
-        print(f"Restaurados {numbers_result.rowcount} números del tablero a 'available'.")
+        print(
+            f"Restaurados {numbers_result.rowcount} números del tablero a 'available'."
+        )
 
         db.commit()
-        print("Reseteo completado con éxito. Todos los códigos y números vuelven a estar libres.")
+        print(
+            "Reseteo completado con éxito. Todos los códigos y números vuelven a estar libres."
+        )
 
     except Exception as e:
         db.rollback()
@@ -66,18 +79,25 @@ def reset_raffle() -> None:
     finally:
         db.close()
 
+
 if __name__ == "__main__":
     app_env = os.getenv("APP_ENV", "development").lower()
-    
-    print("¡ATENCIÓN! Este script borrará todas las participaciones de los usuarios y liberará todos los números.")
+
+    print(
+        "¡ATENCIÓN! Este script borrará todas las participaciones de los usuarios y liberará todos los números."
+    )
     if app_env == "production":
         print("¡¡ALERTA MÁXIMA!! Detectado entorno de PRODUCCIÓN.")
-        confirm = input("Para continuar y BORRAR DATOS REALES de clientes, escribe exactamente 'BORRAR DATOS REALES': ")
+        confirm = input(
+            "Para continuar y BORRAR DATOS REALES de clientes, escribe exactamente 'BORRAR DATOS REALES': "
+        )
         if confirm != "BORRAR DATOS REALES":
             print("Operación cancelada por seguridad.")
             sys.exit(0)
     else:
-        confirm = input("¿Estás seguro de que deseas resetear el sorteo de desarrollo? (escribe 'si' para continuar): ")
+        confirm = input(
+            "¿Estás seguro de que deseas resetear el sorteo de desarrollo? (escribe 'si' para continuar): "
+        )
         if confirm.lower() != "si":
             print("Operación cancelada.")
             sys.exit(0)

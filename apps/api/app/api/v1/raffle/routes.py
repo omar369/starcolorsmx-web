@@ -64,7 +64,7 @@ def validate_tickets(
     data: TicketBatchValidateRequest,
     request: Request,
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[ User,Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     raffle = get_active_raffle(db)
 
@@ -98,7 +98,7 @@ def validate_tickets(
 def confirm_numbers(
     data: ConfirmNumbersRequest,
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[ User,Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     raffle = get_active_raffle(db)
 
@@ -116,7 +116,7 @@ def confirm_numbers(
 @router.get("/me/entries", response_model=list[RaffleEntryPublic])
 def get_my_raffle_entries(
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[ User,Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     raffle = get_active_raffle(db)
 

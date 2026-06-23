@@ -6,7 +6,7 @@ from app.api.v1.quotes.catalog import has_option
 class QuoteCreate(BaseModel):
     property_type: str = Field(min_length=2, max_length=80)
     work_location: str = Field(min_length=2, max_length=80)
-    square_meters: float = Field(gt=0, le=100_000)
+    square_meters: float = Field(ge=100, le=100_000)
 
     service_type: str = Field(min_length=2, max_length=80)
     paint_product: str = Field(min_length=2, max_length=80)
@@ -182,7 +182,6 @@ class QuoteResult(BaseModel):
     estimated_price: float
     created_at: str | None = None
     is_expired: bool = False
-
 
 
 def validate_catalog_option(catalog_name: str, value: str) -> str:

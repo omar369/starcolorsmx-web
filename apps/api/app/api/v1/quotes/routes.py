@@ -1,23 +1,30 @@
-from datetime import UTC, datetime, timedelta
 import logging
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.v1.auth.routes import get_current_user, get_optional_current_user
 from app.api.v1.auth.models import User
-from app.db.session import get_db
+from app.api.v1.auth.routes import get_current_user, get_optional_current_user
+from app.api.v1.quotes.mail import send_quote_email
 from app.api.v1.quotes.pdf import build_quote_pdf
-from app.api.v1.quotes.schemas import QuoteCreate, QuoteOptions, QuoteResult
-from app.api.v1.quotes.service import calculate_quote, get_quote_options
 from app.api.v1.quotes.repository import (
     create_quote_record,
+    create_quote_request_record,
     get_quote_by_id,
     get_user_quotes,
 )
-from app.api.v1.quotes.mail import send_quote_email
-from app.core.config import settings
+from app.api.v1.quotes.schemas import QuoteCreate, QuoteOptions, QuoteResult
+from app.api.v1.quotes.service import calculate_quote, get_quote_options
+from app.core.rate_limit import (
+    _get_ip,
+    check_quote_rate_limit,
+    hash_value,
+    rate_limit_send_email,
+)
+from app.db.session import get_db
 
 router = APIRouter(prefix="/quotes", tags=["Quotes"])
 logger = logging.getLogger(__name__)
@@ -45,10 +52,20 @@ def list_quote_options():
 
 @router.post("/", response_model=QuoteResult)
 def create_quote(
+    request: Request,
     payload: QuoteCreate,
     db: DbSession,
     current_user: OptionalUser,
 ):
+    ip_address = _get_ip(request)
+
+    # --- Rate limit: per contact_value + per IP (DB-backed, 24h window) ---
+    check_quote_rate_limit(
+        db,
+        contact_value=payload.contact_value,
+        ip_address=ip_address,
+    )
+
     # Calculate the quote result
     result = calculate_quote(payload)
 
@@ -57,10 +74,11 @@ def create_quote(
     user_type = "visitor"
     if current_user:
         from app.api.v1.quotes.repository import count_user_quotes
+
         if count_user_quotes(db, current_user.id) >= 6:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Límite de presupuestos alcanzado (máximo 6). Por favor, elimina algún presupuesto anterior antes de crear uno nuevo."
+                detail="Límite de presupuestos alcanzado (máximo 6). Por favor, elimina algún presupuesto anterior antes de crear uno nuevo.",
             )
         user_id = current_user.id
         user_type = "user"
@@ -82,6 +100,21 @@ def create_quote(
         user_id=user_id,
         user_type=user_type,
     )
+
+    # --- Record request for rate limiting (wires the existing QuoteRequest table) ---
+    try:
+        create_quote_request_record(
+            db,
+            contact_value=payload.contact_value,
+            ip_hash=hash_value(ip_address) if ip_address != "unknown" else None,
+            user_agent_hash=hash_value(request.headers.get("User-Agent", "") or ""),
+            reason="quote_created",
+        )
+    except Exception:
+        # Never fail the main request because of rate-limit bookkeeping
+        logger.warning(
+            "Failed to record quote request for rate limiting", exc_info=True
+        )
 
     # Enriched response
     result.id = quote_record.id
@@ -131,6 +164,7 @@ def delete_quote(
         )
 
     from app.api.v1.quotes.repository import delete_quote_record
+
     delete_quote_record(db, quote_record)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -148,8 +182,10 @@ def get_quote_pdf(
             detail="Presupuesto no encontrado",
         )
 
-    # Security check: if quote belongs to a registered user, verify ownership
-    if settings.app_env != "development" and quote_record.user_id is not None:
+    # Security check: quotes that belong to a registered user require auth.
+    # Visitor quotes (user_id=None) are public — they carry no PII beyond
+    # what the anonymous user entered themselves.
+    if quote_record.user_id is not None:
         if not current_user or current_user.id != quote_record.user_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -179,11 +215,15 @@ def get_quote_pdf(
 
 @router.post("/{quote_id}/send-email")
 async def email_quote_pdf(
+    request: Request,
     quote_id: int,
     payload: SendEmailPayload,
     db: DbSession,
     current_user: OptionalUser,
 ):
+    # --- Rate limit: 3 sends per IP per 10 minutes ---
+    rate_limit_send_email(request)
+
     quote_record = get_quote_by_id(db, quote_id)
     if not quote_record:
         raise HTTPException(
@@ -191,8 +231,8 @@ async def email_quote_pdf(
             detail="Presupuesto no encontrado",
         )
 
-    # Security check
-    if settings.app_env != "development" and quote_record.user_id is not None:
+    # Security check: same rule as PDF — user-owned quotes require auth.
+    if quote_record.user_id is not None:
         if not current_user or current_user.id != quote_record.user_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -226,7 +266,7 @@ async def email_quote_pdf(
             email_to=email_to,
             customer_name=quote_record.customer_name,
             pdf_bytes=pdf,
-            filename=f"precotizacion-{quote_id}.pdf"
+            filename=f"precotizacion-{quote_id}.pdf",
         )
     except RuntimeError as e:
         logger.error(f"SMTP error al enviar quote {quote_id}: {e}")
@@ -241,7 +281,10 @@ async def email_quote_pdf(
             detail="No se pudo enviar el correo. Verifica la configuración SMTP en Railway.",
         )
 
-    return {"status": "success", "message": f"Precotización enviada exitosamente a {email_to}"}
+    return {
+        "status": "success",
+        "message": f"Precotización enviada exitosamente a {email_to}",
+    }
 
 
 # Legacy direct PDF generation from raw payload (backward compatibility)
@@ -259,4 +302,3 @@ def create_quote_pdf(payload: QuoteCreate):
             "Content-Disposition": f'attachment; filename="{filename}"',
         },
     )
-

@@ -5,7 +5,6 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Quote, QuoteRequest
-from app.core.config import settings
 
 
 def create_quote_record(
@@ -95,9 +94,7 @@ def count_recent_quote_requests(
 
 def get_user_quotes(db: Session, user_id: int) -> list[Quote]:
     statement = (
-        select(Quote)
-        .where(Quote.user_id == user_id)
-        .order_by(Quote.created_at.desc())
+        select(Quote).where(Quote.user_id == user_id).order_by(Quote.created_at.desc())
     )
     return list(db.scalars(statement).all())
 
@@ -108,15 +105,10 @@ def get_quote_by_id(db: Session, quote_id: int) -> Quote | None:
 
 
 def count_user_quotes(db: Session, user_id: int) -> int:
-    statement = (
-        select(func.count())
-        .select_from(Quote)
-        .where(Quote.user_id == user_id)
-    )
+    statement = select(func.count()).select_from(Quote).where(Quote.user_id == user_id)
     return db.scalar(statement) or 0
 
 
 def delete_quote_record(db: Session, quote: Quote) -> None:
     db.delete(quote)
     db.commit()
-

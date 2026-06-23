@@ -1,7 +1,7 @@
-import sqlite3
 import json
-import sys
 import os
+import sqlite3
+import sys
 
 # Set up python path to import app modules
 sys.path.append(os.path.abspath("apps/api"))
@@ -26,7 +26,9 @@ for r in rows:
         result_dict = json.loads(result_str)
         # Try to validate
         validated = QuoteResult.model_validate(result_dict)
-        print(f"  Validation SUCCESS: paint={validated.paint_product_name}, price={validated.estimated_price}")
+        print(
+            f"  Validation SUCCESS: paint={validated.paint_product_name}, price={validated.estimated_price}"
+        )
     except Exception as e:
         print(f"  Validation FAILED: {type(e).__name__}: {e}")
         print(f"  JSON content: {result_str}")

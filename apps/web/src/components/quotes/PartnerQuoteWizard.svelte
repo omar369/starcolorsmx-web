@@ -309,9 +309,9 @@
       if (
         !form.square_meters ||
         Number.isNaN(numericValue) ||
-        numericValue <= 0
+        numericValue < 100
       ) {
-        return "Ingresa metros cuadrados mayores a 0.";
+        return "Se requiere un mínimo de 100 m².";
       }
       return "";
     }

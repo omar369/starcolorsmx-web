@@ -117,13 +117,23 @@ def test_create_quote_rejects_invalid_preparation():
     assert response.status_code == 422
 
 
-def test_create_quote_rejects_empty_preparation():
+def test_create_quote_accepts_empty_preparation():
+    """
+    Empty preparation list is explicitly valid: it means the job requires
+    no surface preparation, so no preparation surcharge is applied.
+    The schema validator documents this at QuoteCreate.validate_preparation.
+    """
     payload = valid_quote_payload()
     payload["preparation"] = []
 
     response = client.post("/api/v1/quotes/", json=payload)
 
-    assert response.status_code == 422
+    assert response.status_code == 200
+    data = response.json()
+    preparation_adjustments = [
+        adj for adj in data["adjustments"] if adj["category"] == "Preparación"
+    ]
+    assert preparation_adjustments == []
 
 
 def test_create_quote_rejects_invalid_email_contact():
@@ -170,3 +180,31 @@ def valid_quote_payload():
         "contact_value": "4427188369",
         "wants_offers": True,
     }
+
+
+def test_create_quote_rejects_square_meters_below_minimum():
+    """
+    La API debe rechazar cualquier valor menor a 100 m² con 422.
+    El mínimo (ge=100) se definió porque superficies menores están
+    fuera del rango de servicio de StarColors.
+    """
+    payload = valid_quote_payload()
+    payload["square_meters"] = 99.99
+
+    response = client.post("/api/v1/quotes/", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_create_quote_accepts_minimum_square_meters():
+    """
+    Exactamente 100 m² debe ser aceptado (límite inclusivo ge=100).
+    Verifica que el boundary value no sea rechazado por error off-by-one.
+    """
+    payload = valid_quote_payload()
+    payload["square_meters"] = 100.0
+
+    response = client.post("/api/v1/quotes/", json=payload)
+
+    assert response.status_code == 200
+    assert response.json()["square_meters"] == 100.0

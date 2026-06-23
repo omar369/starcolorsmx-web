@@ -121,9 +121,9 @@
             id="square_meters"
             bind:value={form.square_meters}
             type="number"
-            min="1"
+            min="100"
             step="0.01"
-            placeholder="40"
+            placeholder="100"
             aria-invalid={Boolean(errors.square_meters)}
             class="
               w-full min-h-[44px]

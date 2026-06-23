@@ -1,14 +1,14 @@
-import smtplib
-import logging
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
-import anyio
+import asyncio
 import base64
 import json
-import urllib.request
+import logging
+import smtplib
 import urllib.error
+import urllib.request
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from app.core.config import settings
 
@@ -141,7 +141,7 @@ def send_quote_email_sync(
     email_to: str,
     customer_name: str,
     pdf_bytes: bytes,
-    filename: str = "precotizacion-starcolors.pdf"
+    filename: str = "precotizacion-starcolors.pdf",
 ) -> bool:
     """
     Envía el PDF de cotización por correo.
@@ -162,39 +162,36 @@ def send_quote_email_sync(
             raise RuntimeError(
                 "La clave API de Resend (SMTP_PASSWORD) no está configurada."
             )
-        
+
         # Codificar PDF a base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
         html_content = _build_email_html(customer_name, filename)
-        
+
         payload = {
             "from": f"StarColors MX <{settings.smtp_from}>",
             "to": [email_to],
             "subject": "Tu precotización de pintura — StarColors MX",
             "html": html_content,
-            "attachments": [
-                {
-                    "filename": filename,
-                    "content": pdf_base64
-                }
-            ]
+            "attachments": [{"filename": filename, "content": pdf_base64}],
         }
-        
+
         req = urllib.request.Request(
             "https://api.resend.com/emails",
             data=json.dumps(payload).encode("utf-8"),
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
             },
-            method="POST"
+            method="POST",
         )
-        
+
         try:
             with urllib.request.urlopen(req, timeout=20) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
-                logger.info(f"Correo enviado exitosamente vía Resend API (HTTPS). ID: {res_data.get('id')}")
+                logger.info(
+                    f"Correo enviado exitosamente vía Resend API (HTTPS). ID: {res_data.get('id')}"
+                )
                 return True
         except urllib.error.HTTPError as e:
             err_body = e.read().decode("utf-8")
@@ -229,7 +226,9 @@ def send_quote_email_sync(
             "starcolorsmx.com"
         )
         msg.attach(MIMEText(plain_text, "plain", "utf-8"))
-        msg.attach(MIMEText(_build_email_html(customer_name, filename), "html", "utf-8"))
+        msg.attach(
+            MIMEText(_build_email_html(customer_name, filename), "html", "utf-8")
+        )
 
         # Adjunto PDF
         full_msg = MIMEMultipart("mixed")
@@ -286,13 +285,13 @@ async def send_quote_email(
     email_to: str,
     customer_name: str,
     pdf_bytes: bytes,
-    filename: str = "precotizacion-starcolors.pdf"
+    filename: str = "precotizacion-starcolors.pdf",
 ) -> bool:
     """
     Wrapper async — ejecuta el envío SMTP en un thread separado
     para no bloquear el event loop de FastAPI.
     Deja que las excepciones de send_quote_email_sync se propaguen.
     """
-    return await anyio.to_thread.run_sync(
-        lambda: send_quote_email_sync(email_to, customer_name, pdf_bytes, filename)
+    return await asyncio.to_thread(
+        send_quote_email_sync, email_to, customer_name, pdf_bytes, filename
     )

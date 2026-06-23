@@ -9,6 +9,7 @@ from app.api.v1.auth.models import User
 from app.api.v1.auth.schemas import TokenResponse, UserLogin, UserPublic, UserRegister
 from app.api.v1.auth.security import create_access_token, decode_access_token
 from app.api.v1.auth.service import authenticate_user, create_user, get_user_by_id
+from app.core.rate_limit import rate_limit_login, rate_limit_register
 from app.db.session import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -82,13 +83,13 @@ def get_optional_current_user(
     return None
 
 
-
-
 @router.post("/register", response_model=TokenResponse)
 def register_user(
+    request: Request,
     data: UserRegister,
     db: DbSession,
 ) -> TokenResponse:
+    rate_limit_register(request)
     user = create_user(db, data)
     token = create_access_token(subject=str(user.id))
 
@@ -100,9 +101,11 @@ def register_user(
 
 @router.post("/login", response_model=TokenResponse)
 def login_user(
+    request: Request,
     data: UserLogin,
     db: DbSession,
 ) -> TokenResponse:
+    rate_limit_login(request)
     user = authenticate_user(db, data.email, data.password)
     token = create_access_token(subject=str(user.id))
 

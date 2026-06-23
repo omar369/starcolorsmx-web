@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.routes import router as api_v1_router
 from app.core.config import settings
 
-
 app = FastAPI(
     title=settings.app_name,
     version=settings.api_version,
@@ -32,6 +31,7 @@ def root():
         "environment": settings.app_env,
         "version": settings.api_version,
     }
+
 
 @app.get("/health")
 def health_check():

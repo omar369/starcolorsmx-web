@@ -1,5 +1,4 @@
 from collections.abc import Generator
-from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -44,6 +43,7 @@ def client() -> Generator[TestClient]:
         app.dependency_overrides.clear()
         Base.metadata.drop_all(bind=engine)
         engine.dispose()
+
 
 @pytest.fixture
 def auth_headers(client: TestClient) -> dict[str, str]:
